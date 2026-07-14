@@ -562,7 +562,70 @@ function showDijkstra() {
     if (card.style.display === 'block') updateSelects();
 }
 
-function runDijkstra() { outputToArea('<em>该功能将在下一步实现</em>'); }
+function runDijkstra() {
+    const start = parseInt(document.getElementById('dijkFrom').value);
+    const end = parseInt(document.getElementById('dijkTo').value);
+    if (isNaN(start) || isNaN(end)) { alert('请选择起点和终点'); return; }
+    if (start === end) { alert('起点和终点不能相同'); return; }
+
+    const n = spots.length;
+    const dist = Array(n).fill(INF);
+    const prev = Array(n).fill(-1);
+    const visited = Array(n).fill(false);
+    dist[start] = 0;
+
+    for (let i = 0; i < n; i++) {
+        let u = -1, minDist = INF;
+        for (let j = 0; j < n; j++) {
+            if (!visited[j] && dist[j] < minDist) { minDist = dist[j]; u = j; }
+        }
+        if (u === -1) break;
+        visited[u] = true;
+        for (let { to, weight } of (adjList.get(u) || [])) {
+            if (!visited[to] && dist[u] + weight < dist[to]) {
+                dist[to] = dist[u] + weight;
+                prev[to] = u;
+            }
+        }
+    }
+
+    if (dist[end] === INF) {
+        document.getElementById('dijkResult').innerHTML = '❌ ' + spots[start] + ' 和 ' + spots[end] + ' 之间没有连通路径。';
+        document.getElementById('dijkResult').style.display = 'block';
+        setStatus('❌ 无连通路径');
+        return;
+    }
+
+    const path = [];
+    let cur = end;
+    while (cur !== -1) { path.unshift(cur); cur = prev[cur]; }
+
+    // 高亮最短路径
+    highlightEdges = [];
+    let totalDist = 0;
+    for (let i = 0; i < path.length - 1; i++) {
+        highlightEdges.push({ from: path[i], to: path[i + 1], color: '#e63946' });
+        totalDist += adjMatrix[path[i]][path[i + 1]];
+    }
+    drawGraph();
+
+    const pathStr = path.map(i => spots[i]).join(' → ');
+    const resultHtml = '<span class="hili">🔍 最短路径查询结果</span><br><br>' +
+        '<strong>起点：</strong>' + spots[start] + ' &nbsp;|&nbsp; <strong>终点：</strong>' + spots[end] + '<br><br>' +
+        '<span class="pat">路线：' + pathStr + '</span><br>' +
+        '<span class="dis">最短距离：' + dist[end] + '</span>';
+    document.getElementById('dijkResult').innerHTML = resultHtml;
+    document.getElementById('dijkResult').style.display = 'block';
+
+    let detail = '最短路径（' + spots[start] + ' → ' + spots[end] + '）：\n  路径：' + pathStr + '\n  距离：' + dist[end] + '\n\n途经分段：\n';
+    for (let i = 0; i < path.length - 1; i++) {
+        const w = adjMatrix[path[i]][path[i + 1]];
+        detail += '  ' + spots[path[i]] + ' — ' + spots[path[i + 1]] + ' ：' + w + '\n';
+    }
+    detail += '  ─────────\n  总距离：' + dist[end];
+    outputToArea(detail);
+    setStatus('📏 最短路径：' + spots[start] + ' → ' + spots[end] + '，距离 ' + dist[end] + '（红色高亮边）');
+}
 function detectCycle() {
     if (spots.length === 0) { alert('请先加载数据'); return; }
     if (tourPath.length === 0) { alert('请先生成导游线路（DFS）'); return; }
