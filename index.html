@@ -51,6 +51,7 @@
             min-height: 580px;
         }
 
+        /* ===== Canvas 面板 ===== */
         .canvas-panel {
             flex: 1 1 62%;
             background: var(--card-bg);
@@ -72,8 +73,15 @@
             color: var(--text);
         }
         .canvas-header .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--primary); }
-        #mapCanvas { flex: 1; width: 100%; }
+        .canvas-header .hint {
+            margin-left: auto;
+            font-size: 11px;
+            font-weight: 400;
+            color: #999;
+        }
+        #mapCanvas { flex: 1; width: 100%; cursor: pointer; }
 
+        /* ===== 右侧面板 ===== */
         .control-panel {
             flex: 0 0 370px;
             display: flex;
@@ -123,15 +131,12 @@
             display: flex; gap: 6px; margin-bottom: 6px; align-items: center;
         }
         .input-row label { font-size: 12px; white-space: nowrap; min-width: 38px; color: var(--text-light); }
-        .input-row input, .input-row select {
+        .input-row select {
             flex: 1; padding: 6px 8px;
             border: 1px solid var(--border); border-radius: 4px;
-            font-size: 13px; font-family: inherit; min-width: 55px;
+            font-size: 13px; font-family: inherit;
         }
-        .input-row input:focus, .input-row select:focus {
-            outline: none; border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(64,145,108,0.15);
-        }
+        .input-row select:focus { outline: none; border-color: var(--accent); }
 
         .result-area {
             background: #f8faf9;
@@ -170,10 +175,82 @@
         .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; }
         .legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 
+        /* ===== 景点详情弹窗 ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.25s ease;
+        }
+        .modal-overlay.active { display: flex; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            width: 560px;
+            max-width: 95vw;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+        }
+        .modal-img {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            border-radius: 12px 12px 0 0;
+            display: block;
+            background: #e8f5e9;
+        }
+        .modal-body { padding: 20px 24px; }
+        .modal-body h2 {
+            font-size: 22px;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        .modal-body .spot-tag {
+            display: inline-block;
+            background: #e8f5e9;
+            color: var(--primary);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-bottom: 14px;
+        }
+        .modal-body .info-row {
+            display: flex; gap: 20px; margin-bottom: 14px;
+            font-size: 13px; color: var(--text-light);
+        }
+        .modal-body .info-row span strong { color: var(--text); }
+        .modal-body .desc {
+            font-size: 14px; line-height: 1.9; color: #444;
+            text-indent: 2em; margin-bottom: 12px;
+        }
+        .modal-body .nearby { font-size: 12px; color: #888; margin-top: 8px; }
+        .modal-body .nearby a { color: var(--accent); cursor: pointer; text-decoration: underline; }
+        .modal-close {
+            position: sticky; top: 0; float: right;
+            background: rgba(255,255,255,0.9); border: none;
+            width: 36px; height: 36px; border-radius: 50%;
+            font-size: 20px; cursor: pointer; margin: 10px 10px 0 0;
+            z-index: 10; color: #333;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .modal-close:hover { background: #fff; }
+
         @media (max-width: 900px) {
             .main-container { flex-direction: column; height: auto; }
             .canvas-panel { min-height: 380px; }
             .control-panel { flex: none; }
+            .modal { width: 95vw; }
         }
     </style>
 </head>
@@ -186,17 +263,22 @@
 </div>
 
 <div class="main-container">
+    <!-- 左侧 Canvas -->
     <div class="canvas-panel">
-        <div class="canvas-header"><span class="dot"></span> 景区景点分布图</div>
+        <div class="canvas-header">
+            <span class="dot"></span> 景区景点分布图
+            <span class="hint">💡 点击图中景点可查看详细介绍</span>
+        </div>
         <canvas id="mapCanvas"></canvas>
     </div>
 
+    <!-- 右侧控制面板 -->
     <div class="control-panel" id="controlPanel">
+        <!-- 功能菜单 -->
         <div class="card">
             <h3><span class="icon">🎛️</span> 功能菜单</h3>
             <div class="btn-group">
                 <button class="btn primary" onclick="loadPreset()">📥 加载预设数据</button>
-                <button class="btn" onclick="resetSystem()">🔄 重置系统</button>
                 <button class="btn" onclick="displayMatrix()">📊 展示邻接矩阵</button>
                 <button class="btn" onclick="dfsTour()">🗺️ DFS 导游线路</button>
                 <button class="btn warn" onclick="detectCycle()">🔁 回路检测</button>
@@ -205,22 +287,24 @@
             </div>
         </div>
 
+        <!-- 景点查询 -->
         <div class="card">
-            <h3><span class="icon">✏️</span> 景点 & 路径管理</h3>
+            <h3><span class="icon">🔍</span> 景点查询</h3>
             <div class="input-row">
-                <label>景点名：</label>
-                <input type="text" id="spotName" placeholder="输入景点名称">
-                <button class="btn primary" onclick="addSpot()">添加</button>
+                <label>选择景点：</label>
+                <select id="spotSelect" onchange="onSpotSelect()">
+                    <option value="">-- 请先加载数据 --</option>
+                </select>
             </div>
-            <div class="input-row">
-                <label>边：</label>
-                <select id="edgeFrom"></select> <span>→</span>
-                <select id="edgeTo"></select>
-                <input type="number" id="edgeWeight" placeholder="距离" style="width:55px;" min="1">
-                <button class="btn" onclick="addEdge()">添加边</button>
+            <button class="btn primary" onclick="viewSelectedSpot()" style="margin-top:6px;width:100%;">
+                📖 查看景点详情
+            </button>
+            <div style="font-size:11px;color:#999;margin-top:6px;">
+                💡 也可在左侧分布图中直接点击景点圆形图标
             </div>
         </div>
 
+        <!-- 最短路径查询 -->
         <div class="card" id="dijkstraCard" style="display:none;">
             <h3><span class="icon">📏</span> 最短路径查询（Dijkstra）</h3>
             <div class="input-row"><label>起点：</label><select id="dijkFrom"></select></div>
@@ -229,6 +313,7 @@
             <div id="dijkResult" class="result-area" style="margin-top:8px; display:none;"></div>
         </div>
 
+        <!-- 输出结果 -->
         <div class="card">
             <h3><span class="icon">📋</span> 输出结果</h3>
             <div class="result-area" id="outputArea"><em>点击"加载预设数据"开始使用系统</em></div>
@@ -236,6 +321,25 @@
     </div>
 </div>
 
+<!-- 景点详情弹窗 -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal" id="modal" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModalDirect()">✕</button>
+        <img class="modal-img" id="modalImg" src="" alt="景点图片">
+        <div class="modal-body">
+            <h2 id="modalTitle"></h2>
+            <span class="spot-tag" id="modalTag"></span>
+            <div class="info-row">
+                <span>📍 编号：<strong id="modalId"></strong></span>
+                <span>🔗 邻接景点：<strong id="modalNeighbors"></strong></span>
+            </div>
+            <div class="desc" id="modalDesc"></div>
+            <div class="nearby" id="modalNearby"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 底部状态栏 -->
 <div class="status-bar">
     <span id="statusText">🟢 就绪</span>
     <span style="margin-left:auto;">景点数：<strong id="spotCount">0</strong></span>
@@ -256,6 +360,50 @@ let adjList = new Map();
 let adjMatrix = [];
 let tourPath = [];
 let highlightEdges = [];
+
+// ==================== 景点介绍数据 ====================
+const spotInfoMap = {
+    "大门": {
+        tag: "🏛️ 入口",
+        desc: "景区正大门，始建于明代，是一座气势恢宏的三开间石牌坊。门楣上镌刻着清代书法家题写的"翠微胜境"四个大字，笔力遒劲，金粉犹存。门前左右各立一尊石狮，威武庄严，守护着这片山水的千年灵韵。大门两侧古松参天，每逢清晨雾气缭绕之时，游人步入其中，恍若穿越时光之门，进入世外桃源。",
+        img: "https://picsum.photos/seed/gate/600/400"
+    },
+    "碧玉潭": {
+        tag: "💧 水景",
+        desc: "碧玉潭因潭水碧绿如玉而得名，是景区内最负盛名的水景。潭深约三丈，水质清澈见底，水下卵石历历可数。相传唐代诗人李白游历至此，见潭水澄澈如镜、倒映青山翠竹，不禁赞叹"此水只应天上有"。潭边建有凉亭一座，供游人休憩赏景。夏日荷花开遍潭面，清香四溢；秋日枫叶倒映水中，红绿交织，美不胜收。",
+        img: "https://picsum.photos/seed/pond/600/400"
+    },
+    "红叶林": {
+        tag: "🍁 秋色",
+        desc: "红叶林占地约五十亩，栽种了数千棵鸡爪槭和红枫。每年十月至十一月，整片山林层林尽染，从橙黄到深红，层次分明，宛如一幅浓墨重彩的油画。林间铺设了蜿蜒的木栈道，游客穿行其中，脚下落叶沙沙作响，抬头红叶遮天蔽日。摄影爱好者常在此蹲守日出和日落时分，捕捉光影穿透红叶的绝美瞬间。红叶林也是景区最大的天然氧吧，负氧离子含量极高。",
+        img: "https://picsum.photos/seed/autumn/600/400"
+    },
+    "赏花园": {
+        tag: "🌸 花卉",
+        desc: "赏花园是一座典型的江南园林式花园，占地约二十亩。园中按季节分片种植了牡丹、芍药、菊花、梅花等传统名花，确保四季有花可赏。春季牡丹盛开时最为热闹，姹紫嫣红、争奇斗艳，吸引无数游客驻足拍照。园中还有一座小巧精致的假山和曲水流觞的景观小品，充满了文人雅趣。每年四月举办的"百花节"是景区最盛大的活动之一。",
+        img: "https://picsum.photos/seed/garden/600/400"
+    },
+    "飞云石": {
+        tag: "🪨 奇石",
+        desc: "飞云石是一块高达十余米的巨型花岗岩，因其形状奇特、宛如一朵凝固的飞云而得名。岩石表面布满了千百年来风雨侵蚀形成的纹理，远观如行云流水，近看似龙鳞虎斑。地质学家考证，此石形成于约两亿年前的中生代，是地壳运动的产物。石顶有一小平台，胆大的游客可攀登至顶，俯瞰整个景区的壮丽景色。当地流传着"摸飞云石、好运即来"的说法，岩石下部已被游人摸得光滑发亮。",
+        img: "https://picsum.photos/seed/rock/600/400"
+    },
+    "九曲桥": {
+        tag: "🌉 古桥",
+        desc: "九曲桥是一座横跨碧玉潭的古典石拱桥，全长约五十米，桥身九折九曲，寓意"九曲十八弯，步步高升"。桥面铺设青石板，两侧有精致的石雕栏杆，栏板上雕刻着梅兰竹菊和祥云瑞兽图案。据说此桥由清代一位告老还乡的工部侍郎捐资修建，桥成之日有九只白鹤盘旋其上，被视为祥瑞之兆。漫步桥上，移步换景，每一个转角都能看到不同的湖光山色。",
+        img: "https://picsum.photos/seed/bridge/600/400"
+    },
+    "白虎岩": {
+        tag: "🐯 奇石",
+        desc: "白虎岩因山体岩石呈白色，且形似一只匍匐欲扑的猛虎而得名。岩石主体为白色石英岩，在阳光照射下银光闪闪，与周围的苍翠树林形成鲜明对比。虎头部位面向西方，恰合传统文化中"白虎"为西方神兽的说法，被当地人视为镇山灵石。岩下有天然形成的岩洞，洞内钟乳石千姿百态，夏季洞内凉爽如秋，是避暑纳凉的好去处。每年端午，当地百姓有在此舞龙祈福的习俗。",
+        img: "https://picsum.photos/seed/tiger/600/400"
+    },
+    "观月阁": {
+        tag: "🏯 楼阁",
+        desc: "观月阁坐落于景区最高处的翠微峰顶，是一座三层飞檐攒尖顶的仿古建筑。阁高约二十米，朱柱碧瓦，飞檐翘角，气势不凡。登上阁楼顶层，极目远眺，可将整个景区及周边数十里山水尽收眼底。每逢中秋之夜，一轮圆月从东山升起，清辉洒满山川，阁中赏月已成为当地最富盛名的风雅活动。历代文人墨客在此留下了大量诗词题咏，阁内至今保存着十余块碑刻。",
+        img: "https://picsum.photos/seed/pavilion/600/400"
+    }
+};
 
 // ==================== Canvas ====================
 const canvas = document.getElementById('mapCanvas');
@@ -285,12 +433,17 @@ function rebuildMatrix() {
 }
 
 function updateSelects() {
-    const sels = ['edgeFrom','edgeTo','dijkFrom','dijkTo'];
+    const sels = ['dijkFrom','dijkTo','spotSelect'];
     sels.forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const v = sel.value;
-        sel.innerHTML = spots.map((s,i) => `<option value="${i}">${s}</option>`).join('');
+        if (id === 'spotSelect') {
+            sel.innerHTML = '<option value="">-- 选择景点 --</option>' +
+                spots.map((s,i) => `<option value="${i}">[${i}] ${s}</option>`).join('');
+        } else {
+            sel.innerHTML = spots.map((s,i) => `<option value="${i}">${s}</option>`).join('');
+        }
         if (v !== '' && parseInt(v) < spots.length) sel.value = v;
     });
     document.getElementById('spotCount').textContent = spots.length;
@@ -322,6 +475,7 @@ function drawGraph() {
         ctx.font = '16px "Microsoft YaHei", sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('暂无景点数据，请点击"加载预设数据"', canvas.width / 2, canvas.height / 2);
+        nodePositions = [];
         return;
     }
 
@@ -356,7 +510,7 @@ function drawGraph() {
             ctx.lineWidth = isHL ? 3.5 : 2;
             ctx.stroke();
 
-            // 权重
+            // 权重标签
             const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
             const angle = Math.atan2(y2 - y1, x2 - x1);
             ctx.fillStyle = isHL ? '#000' : '#666';
@@ -372,37 +526,139 @@ function drawGraph() {
         const { x, y } = pos[i];
         const inTour = tourPath.includes(i);
 
+        // 阴影
         ctx.beginPath();
-        ctx.arc(x + 2, y + 2, 25, 0, 2 * Math.PI);
+        ctx.arc(x + 2, y + 2, 26, 0, 2 * Math.PI);
         ctx.fillStyle = 'rgba(0,0,0,0.1)';
         ctx.fill();
 
+        // 圆形
         ctx.beginPath();
-        ctx.arc(x, y, 25, 0, 2 * Math.PI);
+        ctx.arc(x, y, 26, 0, 2 * Math.PI);
         ctx.fillStyle = inTour ? '#e8f5e9' : '#fff';
         ctx.fill();
-        ctx.strokeStyle = inTour ? '#2d6a4f' : '#666';
+        ctx.strokeStyle = inTour ? '#2d6a4f' : '#555';
         ctx.lineWidth = inTour ? 3 : 2;
         ctx.stroke();
 
+        // 编号
         ctx.fillStyle = '#999';
         ctx.font = '10px "Consolas", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(i, x - 30, y - 14);
+        ctx.fillText(i, x - 31, y - 15);
 
+        // 名称
         ctx.fillStyle = '#1b4332';
         ctx.font = 'bold 13px "Microsoft YaHei", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const label = spots[i].length > 3 ? spots[i].substring(0, 3) : spots[i];
         ctx.fillText(label, x, y);
+
+        // 光标提示
+        ctx.fillStyle = '#40916c';
+        ctx.font = '9px "Microsoft YaHei", sans-serif';
+        ctx.fillText('🔍', x + 20, y - 18);
     }
 }
 
+// ==================== Canvas 点击检测 ====================
+canvas.addEventListener('click', function(e) {
+    if (spots.length === 0) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const cx = mx * scaleX;
+    const cy = my * scaleY;
+
+    for (let i = 0; i < nodePositions.length; i++) {
+        const { x, y } = nodePositions[i];
+        const dist = Math.sqrt((cx - x) ** 2 + (cy - y) ** 2);
+        if (dist <= 26) {
+            showSpotDetail(i);
+            return;
+        }
+    }
+});
+
+// ==================== 景点详情弹窗 ====================
+function showSpotDetail(index) {
+    const name = spots[index];
+    const info = spotInfoMap[name] || {
+        tag: "📍 景点",
+        desc: "暂无详细介绍。",
+        img: "https://picsum.photos/seed/default/600/400"
+    };
+
+    document.getElementById('modalImg').src = info.img;
+    document.getElementById('modalTitle').textContent = name;
+    document.getElementById('modalTag').textContent = info.tag;
+    document.getElementById('modalId').textContent = index;
+
+    // 邻接景点
+    const neighbors = adjList.get(index) || [];
+    const neighborStr = neighbors.length > 0
+        ? neighbors.map(e => `${spots[e.to]}(${e.weight})`).join('、')
+        : '无';
+    document.getElementById('modalNeighbors').textContent = neighborStr;
+
+    document.getElementById('modalDesc').textContent = info.desc;
+
+    // 临近景点快捷跳转
+    if (neighbors.length > 0) {
+        let nearbyHtml = '🧭 邻近景点：';
+        neighbors.forEach(e => {
+            nearbyHtml += `<a onclick="showSpotDetail(${e.to})">${spots[e.to]}</a> `;
+        });
+        document.getElementById('modalNearby').innerHTML = nearbyHtml;
+    } else {
+        document.getElementById('modalNearby').innerHTML = '';
+    }
+
+    document.getElementById('modalOverlay').classList.add('active');
+    setStatus('📖 正在查看景点：' + name);
+}
+
+function onSpotSelect() {
+    // 选中后不做额外操作，等待用户点"查看详情"
+}
+
+function viewSelectedSpot() {
+    const sel = document.getElementById('spotSelect');
+    const idx = parseInt(sel.value);
+    if (isNaN(idx)) { alert('请先选择一个景点'); return; }
+    showSpotDetail(idx);
+}
+
+function closeModal(e) {
+    if (e.target === document.getElementById('modalOverlay')) {
+        document.getElementById('modalOverlay').classList.remove('active');
+    }
+}
+
+function closeModalDirect() {
+    document.getElementById('modalOverlay').classList.remove('active');
+}
+
+// 键盘 ESC 关闭弹窗
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.getElementById('modalOverlay').classList.remove('active');
+    }
+});
+
 // ==================== 功能：加载预设数据 ====================
 function loadPreset() {
-    resetSystem();
+    // 重置
+    spots = [];
+    adjList = new Map();
+    adjMatrix = [];
+    tourPath = [];
+    highlightEdges = [];
+
     const presetSpots = ['大门', '碧玉潭', '红叶林', '赏花园', '飞云石', '九曲桥', '白虎岩', '观月阁'];
     const presetEdges = [
         [0,1,5], [0,2,8], [1,3,3], [2,3,4],
@@ -418,11 +674,9 @@ function loadPreset() {
     }
     rebuildMatrix();
     updateSelects();
-    highlightEdges = [];
-    tourPath = [];
     drawGraph();
     setStatus('✅ 已加载预设数据：' + spots.length + '个景点，9条边');
-    outputToArea('预设数据加载成功！\n\n景点列表：\n' +
+    outputToArea('预设数据加载成功！\n\n景点列表（点击景点名称或分布图上的圆形图标可查看详情）：\n' +
         spots.map((s,i) => `  [${i}] ${s}`).join('\n') +
         '\n\n边列表（9条）：\n  大门—碧玉潭(5)  大门—红叶林(8)\n' +
         '  碧玉潭—赏花园(3)  红叶林—赏花园(4)\n' +
@@ -431,66 +685,7 @@ function loadPreset() {
         '  白虎岩—观月阁(5)');
 }
 
-function addSpot() {
-    const input = document.getElementById('spotName');
-    const name = input.value.trim();
-    if (!name) { alert('请输入景点名称'); return; }
-    if (spots.includes(name)) { alert('景点已存在'); return; }
-    spots.push(name);
-    adjList.set(spots.length - 1, []);
-    rebuildMatrix();
-    updateSelects();
-    highlightEdges = [];
-    tourPath = [];
-    drawGraph();
-    setStatus('✅ 已添加景点：' + name);
-    outputToArea('添加景点：' + name + '（编号：' + (spots.length - 1) + '）');
-    input.value = '';
-}
-
-function addEdge() {
-    const from = parseInt(document.getElementById('edgeFrom').value);
-    const to = parseInt(document.getElementById('edgeTo').value);
-    const weight = parseInt(document.getElementById('edgeWeight').value);
-    if (isNaN(from) || isNaN(to)) { alert('请选择景点'); return; }
-    if (from === to) { alert('不能添加自环边'); return; }
-    if (isNaN(weight) || weight <= 0) { alert('请输入有效的距离'); return; }
-    const exist = adjList.get(from).find(e => e.to === to);
-    if (exist) { alert('该边已存在'); return; }
-    adjList.get(from).push({ to, weight });
-    adjList.get(to).push({ to: from, weight });
-    rebuildMatrix();
-    updateSelects();
-    highlightEdges = [];
-    tourPath = [];
-    drawGraph();
-    setStatus('✅ 已添加边：' + spots[from] + ' — ' + spots[to] + ' (' + weight + ')');
-    outputToArea('添加边：' + spots[from] + ' ↔ ' + spots[to] + '，距离=' + weight);
-    document.getElementById('edgeWeight').value = '';
-}
-
-function resetSystem() {
-    spots = [];
-    adjList = new Map();
-    adjMatrix = [];
-    tourPath = [];
-    highlightEdges = [];
-    updateSelects();
-    drawGraph();
-    setStatus('🟢 系统已重置');
-    outputToArea('<em>系统已重置，点击"加载预设数据"开始</em>');
-}
-
-// ==================== 辅助 ====================
-function setStatus(msg) { document.getElementById('statusText').textContent = msg; }
-function outputToArea(html) { document.getElementById('outputArea').innerHTML = html.replace(/\n/g, '<br>'); }
-
-// ==================== 初始化 ====================
-updateSelects();
-drawGraph();
-setStatus('🟢 就绪 — 点击"加载预设数据"开始');
-
-// ==================== 占位：后续功能逐步实现 ====================
+// ==================== 功能：展示邻接矩阵 ====================
 function displayMatrix() {
     if (spots.length === 0) { alert('请先加载数据'); return; }
     rebuildMatrix();
@@ -510,6 +705,8 @@ function displayMatrix() {
     document.getElementById('outputArea').innerHTML = html;
     setStatus('📊 已展示邻接矩阵（∞ = ' + INF + ' = 无连通路径）');
 }
+
+// ==================== 功能：DFS 导游线路 ====================
 function dfsTour() {
     if (spots.length === 0) { alert('请先加载数据'); return; }
     const visited = new Set();
@@ -526,10 +723,8 @@ function dfsTour() {
             }
         }
     }
-
     dfs(0);
 
-    // 构建高亮边
     highlightEdges = [];
     for (let i = 0; i < tourPath.length - 1; i++) {
         const from = tourPath[i], to = tourPath[i + 1];
@@ -544,18 +739,52 @@ function dfsTour() {
     result += '遍历路径（含回溯）：\n  ' + tourPath.map(i => spots[i]).join(' → ') + '\n\n';
     result += '覆盖景点数：' + visitedCount + ' / ' + spots.length + '\n';
     result += '线路步数：' + tourPath.length + ' 步\n';
-
     if (visitedCount < spots.length) {
         result += '\n⚠️ 以下景点不可达：';
         for (let i = 0; i < spots.length; i++) {
             if (!visited.has(i)) result += spots[i] + '  ';
         }
     }
-
     outputToArea(result);
     setStatus('🗺️ DFS 导游线路已生成（蓝色高亮边），覆盖 ' + visitedCount + ' 个景点');
 }
 
+// ==================== 功能：回路检测 ====================
+function detectCycle() {
+    if (spots.length === 0) { alert('请先加载数据'); return; }
+    if (tourPath.length === 0) { alert('请先生成导游线路（DFS）'); return; }
+
+    const visitCount = {};
+    for (let v of tourPath) visitCount[v] = (visitCount[v] || 0) + 1;
+    const repeated = Object.entries(visitCount).filter(([k, c]) => c > 1);
+
+    let result = '回路检测结果：\n\n';
+    if (repeated.length > 0) {
+        result += '⚠️ 导游线路中存在回路！\n\n';
+        highlightEdges = [];
+        for (let [spotIdx, count] of repeated) {
+            const idx = parseInt(spotIdx);
+            const positions = [];
+            tourPath.forEach((v, i) => { if (v === idx) positions.push(i); });
+            for (let i = 0; i < positions.length - 1; i++) {
+                const cyclePath = tourPath.slice(positions[i], positions[i + 1] + 1);
+                const cycleStr = cyclePath.map(v => spots[v]).join(' → ');
+                result += '回路（经过 ' + spots[idx] + '）：\n  ' + cycleStr + '\n  回路长度：' + (cyclePath.length - 1) + ' 步\n\n';
+                for (let j = 0; j < cyclePath.length - 1; j++) {
+                    highlightEdges.push({ from: cyclePath[j], to: cyclePath[j + 1], color: '#e65100' });
+                }
+            }
+        }
+    } else {
+        result += '✅ 导游线路中未检测到回路。\n所有景点在导游线路中均只被访问一次。\n';
+        highlightEdges = [];
+    }
+    drawGraph();
+    outputToArea(result);
+    setStatus(repeated.length > 0 ? '🔁 检测到回路（橙色高亮边）' : '✅ 未检测到回路');
+}
+
+// ==================== 功能：Dijkstra 最短路径 ====================
 function showDijkstra() {
     const card = document.getElementById('dijkstraCard');
     card.style.display = card.style.display === 'none' ? 'block' : 'none';
@@ -600,12 +829,9 @@ function runDijkstra() {
     let cur = end;
     while (cur !== -1) { path.unshift(cur); cur = prev[cur]; }
 
-    // 高亮最短路径
     highlightEdges = [];
-    let totalDist = 0;
     for (let i = 0; i < path.length - 1; i++) {
         highlightEdges.push({ from: path[i], to: path[i + 1], color: '#e63946' });
-        totalDist += adjMatrix[path[i]][path[i + 1]];
     }
     drawGraph();
 
@@ -626,44 +852,8 @@ function runDijkstra() {
     outputToArea(detail);
     setStatus('📏 最短路径：' + spots[start] + ' → ' + spots[end] + '，距离 ' + dist[end] + '（红色高亮边）');
 }
-function detectCycle() {
-    if (spots.length === 0) { alert('请先加载数据'); return; }
-    if (tourPath.length === 0) { alert('请先生成导游线路（DFS）'); return; }
 
-    const visitCount = {};
-    for (let v of tourPath) {
-        visitCount[v] = (visitCount[v] || 0) + 1;
-    }
-
-    const repeated = Object.entries(visitCount).filter(([k, c]) => c > 1);
-
-    let result = '回路检测结果：\n\n';
-    if (repeated.length > 0) {
-        result += '⚠️ 导游线路中存在回路！\n\n';
-        highlightEdges = [];
-        for (let [spotIdx, count] of repeated) {
-            const idx = parseInt(spotIdx);
-            const positions = [];
-            tourPath.forEach((v, i) => { if (v === idx) positions.push(i); });
-            for (let i = 0; i < positions.length - 1; i++) {
-                const cyclePath = tourPath.slice(positions[i], positions[i + 1] + 1);
-                const cycleStr = cyclePath.map(v => spots[v]).join(' → ');
-                result += '回路（经过 ' + spots[idx] + '）：\n  ' + cycleStr + '\n  回路长度：' + (cyclePath.length - 1) + ' 步\n\n';
-                for (let j = 0; j < cyclePath.length - 1; j++) {
-                    highlightEdges.push({ from: cyclePath[j], to: cyclePath[j + 1], color: '#e65100' });
-                }
-            }
-        }
-    } else {
-        result += '✅ 导游线路中未检测到回路。\n所有景点在导游线路中均只被访问一次。\n';
-        highlightEdges = [];
-    }
-
-    drawGraph();
-    outputToArea(result);
-    setStatus(repeated.length > 0 ? '🔁 检测到回路（橙色高亮边）' : '✅ 未检测到回路');
-}
-
+// ==================== 功能：Prim 最小生成树 ====================
 function primMST() {
     if (spots.length === 0) { alert('请先加载数据'); return; }
     const n = spots.length;
@@ -707,6 +897,15 @@ function primMST() {
     highlightEdges = mstEdges.map(e => ({ from: e.from, to: e.to, color: '#2d6a4f' }));
     drawGraph();
 }
+
+// ==================== 辅助 ====================
+function setStatus(msg) { document.getElementById('statusText').textContent = msg; }
+function outputToArea(html) { document.getElementById('outputArea').innerHTML = html.replace(/\n/g, '<br>'); }
+
+// ==================== 初始化 ====================
+updateSelects();
+drawGraph();
+setStatus('🟢 就绪 — 点击"加载预设数据"开始使用');
 </script>
 </body>
 </html>
