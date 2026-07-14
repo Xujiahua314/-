@@ -563,7 +563,44 @@ function showDijkstra() {
 }
 
 function runDijkstra() { outputToArea('<em>该功能将在下一步实现</em>'); }
-function detectCycle() { outputToArea('<em>该功能将在下一步实现</em>'); }
+function detectCycle() {
+    if (spots.length === 0) { alert('请先加载数据'); return; }
+    if (tourPath.length === 0) { alert('请先生成导游线路（DFS）'); return; }
+
+    const visitCount = {};
+    for (let v of tourPath) {
+        visitCount[v] = (visitCount[v] || 0) + 1;
+    }
+
+    const repeated = Object.entries(visitCount).filter(([k, c]) => c > 1);
+
+    let result = '回路检测结果：\n\n';
+    if (repeated.length > 0) {
+        result += '⚠️ 导游线路中存在回路！\n\n';
+        highlightEdges = [];
+        for (let [spotIdx, count] of repeated) {
+            const idx = parseInt(spotIdx);
+            const positions = [];
+            tourPath.forEach((v, i) => { if (v === idx) positions.push(i); });
+            for (let i = 0; i < positions.length - 1; i++) {
+                const cyclePath = tourPath.slice(positions[i], positions[i + 1] + 1);
+                const cycleStr = cyclePath.map(v => spots[v]).join(' → ');
+                result += '回路（经过 ' + spots[idx] + '）：\n  ' + cycleStr + '\n  回路长度：' + (cyclePath.length - 1) + ' 步\n\n';
+                for (let j = 0; j < cyclePath.length - 1; j++) {
+                    highlightEdges.push({ from: cyclePath[j], to: cyclePath[j + 1], color: '#e65100' });
+                }
+            }
+        }
+    } else {
+        result += '✅ 导游线路中未检测到回路。\n所有景点在导游线路中均只被访问一次。\n';
+        highlightEdges = [];
+    }
+
+    drawGraph();
+    outputToArea(result);
+    setStatus(repeated.length > 0 ? '🔁 检测到回路（橙色高亮边）' : '✅ 未检测到回路');
+}
+
 function primMST() { outputToArea('<em>该功能将在下一步实现</em>'); }
 </script>
 </body>
