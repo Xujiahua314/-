@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>景区路径规划系统</title>
+    <style>
+        :root {
+            --bg: #f0f4f3;
+            --card-bg: #ffffff;
+            --primary: #2d6a4f;
+            --primary-hover: #1b4332;
+            --accent: #40916c;
+            --text: #1b4332;
+            --text-light: #555;
+            --border: #d8e2dc;
+            --shadow: 0 2px 8px rgba(0,0,0,0.08);
+            --danger: #c62828;
+            --warning: #e65100;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 50%, #40916c 100%);
+            color: #fff;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+        .header .logo { font-size: 28px; }
+        .header h1 { font-size: 21px; font-weight: 600; letter-spacing: 2px; }
+        .header .subtitle { font-size: 13px; opacity: 0.85; margin-left: auto; }
+
+        .main-container {
+            display: flex;
+            gap: 18px;
+            padding: 18px;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: calc(100vh - 170px);
+            min-height: 580px;
+        }
+
+        .canvas-panel {
+            flex: 1 1 62%;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .canvas-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .canvas-header .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--primary); }
+        #mapCanvas { flex: 1; width: 100%; }
+
+        .control-panel {
+            flex: 0 0 370px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow-y: auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 15px;
+        }
+        .card h3 {
+            font-size: 14px;
+            color: var(--primary);
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .card h3 .icon { font-size: 17px; }
+
+        .btn-group { display: flex; flex-wrap: wrap; gap: 7px; }
+        .btn {
+            padding: 7px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #f8faf9;
+            color: var(--text);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .btn:hover { background: #e8f5e9; border-color: var(--accent); }
+        .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .btn.primary:hover { background: var(--primary-hover); }
+        .btn.accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .btn.warn { background: var(--warning); color: #fff; border-color: var(--warning); }
+
+        .input-row {
+            display: flex; gap: 6px; margin-bottom: 6px; align-items: center;
+        }
+        .input-row label { font-size: 12px; white-space: nowrap; min-width: 38px; color: var(--text-light); }
+        .input-row input, .input-row select {
+            flex: 1; padding: 6px 8px;
+            border: 1px solid var(--border); border-radius: 4px;
+            font-size: 13px; font-family: inherit; min-width: 55px;
+        }
+        .input-row input:focus, .input-row select:focus {
+            outline: none; border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(64,145,108,0.15);
+        }
+
+        .result-area {
+            background: #f8faf9;
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 13px;
+            line-height: 1.8;
+            max-height: 220px;
+            overflow-y: auto;
+            font-family: "Consolas", "Courier New", monospace;
+        }
+        .result-area .hili { color: var(--danger); font-weight: bold; }
+        .result-area .pat { color: #1b5e20; font-weight: bold; }
+        .result-area .dis { color: var(--primary); font-weight: bold; }
+
+        .matrix-table {
+            width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px;
+        }
+        .matrix-table th, .matrix-table td {
+            border: 1px solid var(--border); padding: 4px 5px; text-align: center;
+        }
+        .matrix-table th { background: var(--primary); color: #fff; font-weight: 500; }
+        .matrix-table td.inf { color: #999; }
+
+        .status-bar {
+            margin: 0 18px 18px;
+            padding: 8px 16px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            font-size: 12px;
+            color: var(--text-light);
+            display: flex; gap: 20px; align-items: center;
+        }
+        .legend { display: flex; gap: 14px; align-items: center; }
+        .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; height: auto; }
+            .canvas-panel { min-height: 380px; }
+            .control-panel { flex: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <span class="logo">🏔️</span>
+    <h1>景区路径规划系统</h1>
+    <span class="subtitle">数据结构实训 — 许嘉华 202509604228</span>
+</div>
+
+<div class="main-container">
+    <div class="canvas-panel">
+        <div class="canvas-header"><span class="dot"></span> 景区景点分布图</div>
+        <canvas id="mapCanvas"></canvas>
+    </div>
+
+    <div class="control-panel" id="controlPanel">
+        <div class="card">
+            <h3><span class="icon">🎛️</span> 功能菜单</h3>
+            <div class="btn-group">
+                <button class="btn primary" onclick="loadPreset()">📥 加载预设数据</button>
+                <button class="btn" onclick="resetSystem()">🔄 重置系统</button>
+                <button class="btn" onclick="displayMatrix()">📊 展示邻接矩阵</button>
+                <button class="btn" onclick="dfsTour()">🗺️ DFS 导游线路</button>
+                <button class="btn warn" onclick="detectCycle()">🔁 回路检测</button>
+                <button class="btn accent" onclick="showDijkstra()">📏 最短路径查询</button>
+                <button class="btn primary" onclick="primMST()">🌳 最小生成树</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3><span class="icon">✏️</span> 景点 & 路径管理</h3>
+            <div class="input-row">
+                <label>景点名：</label>
+                <input type="text" id="spotName" placeholder="输入景点名称">
+                <button class="btn primary" onclick="addSpot()">添加</button>
+            </div>
+            <div class="input-row">
+                <label>边：</label>
+                <select id="edgeFrom"></select> <span>→</span>
+                <select id="edgeTo"></select>
+                <input type="number" id="edgeWeight" placeholder="距离" style="width:55px;" min="1">
+                <button class="btn" onclick="addEdge()">添加边</button>
+            </div>
+        </div>
+
+        <div class="card" id="dijkstraCard" style="display:none;">
+            <h3><span class="icon">📏</span> 最短路径查询（Dijkstra）</h3>
+            <div class="input-row"><label>起点：</label><select id="dijkFrom"></select></div>
+            <div class="input-row"><label>终点：</label><select id="dijkTo"></select></div>
+            <button class="btn accent" onclick="runDijkstra()">🔍 查询最短路径</button>
+            <div id="dijkResult" class="result-area" style="margin-top:8px; display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h3><span class="icon">📋</span> 输出结果</h3>
+            <div class="result-area" id="outputArea"><em>点击"加载预设数据"开始使用系统</em></div>
+        </div>
+    </div>
+</div>
+
+<div class="status-bar">
+    <span id="statusText">🟢 就绪</span>
+    <span style="margin-left:auto;">景点数：<strong id="spotCount">0</strong></span>
+    <span>边数：<strong id="edgeCount">0</strong></span>
+    <div class="legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#2d6a4f;"></span> 景点</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#e63946;"></span> 最短路径</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#457b9d;"></span> DFS线路</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#e65100;"></span> 回路</span>
+    </div>
+</div>
+
+<script>
+// ==================== 全局状态 ====================
+const INF = 32767;
+let spots = [];
+let adjList = new Map();
+let adjMatrix = [];
+let tourPath = [];
+let highlightEdges = [];
+
+// ==================== Canvas ====================
+const canvas = document.getElementById('mapCanvas');
+const ctx = canvas.getContext('2d');
+let nodePositions = [];
+
+function resizeCanvas() {
+    const panel = canvas.parentElement;
+    canvas.width = panel.clientWidth - 2;
+    canvas.height = panel.clientHeight - 42;
+    drawGraph();
+}
+window.addEventListener('resize', () => { resizeCanvas(); });
+resizeCanvas();
+
+// ==================== 数据操作 ====================
+function rebuildMatrix() {
+    const n = spots.length;
+    adjMatrix = Array.from({ length: n }, () => Array(n).fill(INF));
+    for (let i = 0; i < n; i++) adjMatrix[i][i] = 0;
+    for (let [from, edges] of adjList) {
+        for (let { to, weight } of edges) {
+            adjMatrix[from][to] = weight;
+            adjMatrix[to][from] = weight;
+        }
+    }
+}
+
+function updateSelects() {
+    const sels = ['edgeFrom','edgeTo','dijkFrom','dijkTo'];
+    sels.forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        const v = sel.value;
+        sel.innerHTML = spots.map((s,i) => `<option value="${i}">${s}</option>`).join('');
+        if (v !== '' && parseInt(v) < spots.length) sel.value = v;
+    });
+    document.getElementById('spotCount').textContent = spots.length;
+    let ec = 0;
+    for (let edges of adjList.values()) ec += edges.length;
+    document.getElementById('edgeCount').textContent = Math.floor(ec / 2);
+}
+
+// ==================== Canvas 绘制 ====================
+function computeNodePositions() {
+    const n = spots.length;
+    const w = canvas.width, h = canvas.height;
+    const cx = w / 2, cy = h / 2;
+    const rx = Math.min(w, h) * 0.37;
+    const ry = Math.min(w, h) * 0.30;
+    const pos = [];
+    for (let i = 0; i < n; i++) {
+        const angle = (2 * Math.PI * i) / n - Math.PI / 2;
+        pos.push({ x: cx + rx * Math.cos(angle), y: cy + ry * Math.sin(angle) });
+    }
+    return pos;
+}
+
+function drawGraph() {
+    if (!canvas.width || !canvas.height) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (spots.length === 0) {
+        ctx.fillStyle = '#aaa';
+        ctx.font = '16px "Microsoft YaHei", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('暂无景点数据，请点击"加载预设数据"', canvas.width / 2, canvas.height / 2);
+        return;
+    }
+
+    nodePositions = computeNodePositions();
+    const pos = nodePositions;
+
+    // 高亮边集合
+    const hlSet = new Set();
+    for (let h of highlightEdges) {
+        hlSet.add(`${h.from},${h.to}`);
+        hlSet.add(`${h.to},${h.from}`);
+    }
+
+    // 绘边
+    const drawn = new Set();
+    for (let [from, edges] of adjList) {
+        for (let { to, weight } of edges) {
+            const key = `${Math.min(from, to)},${Math.max(from, to)}`;
+            if (drawn.has(key)) continue;
+            drawn.add(key);
+
+            const x1 = pos[from].x, y1 = pos[from].y;
+            const x2 = pos[to].x, y2 = pos[to].y;
+            const isHL = hlSet.has(`${from},${to}`);
+
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            const hlEdge = highlightEdges.find(h =>
+                (h.from === from && h.to === to) || (h.from === to && h.to === from));
+            ctx.strokeStyle = isHL ? (hlEdge?.color || '#e63946') : '#bbb';
+            ctx.lineWidth = isHL ? 3.5 : 2;
+            ctx.stroke();
+
+            // 权重
+            const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            ctx.fillStyle = isHL ? '#000' : '#666';
+            ctx.font = 'bold 13px "Consolas", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(weight, mx + 12 * Math.sin(angle), my - 12 * Math.cos(angle));
+        }
+    }
+
+    // 绘节点
+    for (let i = 0; i < spots.length; i++) {
+        const { x, y } = pos[i];
+        const inTour = tourPath.includes(i);
+
+        ctx.beginPath();
+        ctx.arc(x + 2, y + 2, 25, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(0,0,0,0.1)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(x, y, 25, 0, 2 * Math.PI);
+        ctx.fillStyle = inTour ? '#e8f5e9' : '#fff';
+        ctx.fill();
+        ctx.strokeStyle = inTour ? '#2d6a4f' : '#666';
+        ctx.lineWidth = inTour ? 3 : 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#999';
+        ctx.font = '10px "Consolas", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(i, x - 30, y - 14);
+
+        ctx.fillStyle = '#1b4332';
+        ctx.font = 'bold 13px "Microsoft YaHei", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const label = spots[i].length > 3 ? spots[i].substring(0, 3) : spots[i];
+        ctx.fillText(label, x, y);
+    }
+}
+
+// ==================== 功能：加载预设数据 ====================
+function loadPreset() {
+    resetSystem();
+    const presetSpots = ['大门', '碧玉潭', '红叶林', '赏花园', '飞云石', '九曲桥', '白虎岩', '观月阁'];
+    const presetEdges = [
+        [0,1,5], [0,2,8], [1,3,3], [2,3,4],
+        [2,4,6], [3,4,2], [4,5,7], [5,6,4], [6,7,5]
+    ];
+    for (let s of presetSpots) {
+        spots.push(s);
+        adjList.set(spots.length - 1, []);
+    }
+    for (let [u, v, w] of presetEdges) {
+        adjList.get(u).push({ to: v, weight: w });
+        adjList.get(v).push({ to: u, weight: w });
+    }
+    rebuildMatrix();
+    updateSelects();
+    highlightEdges = [];
+    tourPath = [];
+    drawGraph();
+    setStatus('✅ 已加载预设数据：' + spots.length + '个景点，9条边');
+    outputToArea('预设数据加载成功！\n\n景点列表：\n' +
+        spots.map((s,i) => `  [${i}] ${s}`).join('\n') +
+        '\n\n边列表（9条）：\n  大门—碧玉潭(5)  大门—红叶林(8)\n' +
+        '  碧玉潭—赏花园(3)  红叶林—赏花园(4)\n' +
+        '  红叶林—飞云石(6)  赏花园—飞云石(2)\n' +
+        '  飞云石—九曲桥(7)  九曲桥—白虎岩(4)\n' +
+        '  白虎岩—观月阁(5)');
+}
+
+function addSpot() {
+    const input = document.getElementById('spotName');
+    const name = input.value.trim();
+    if (!name) { alert('请输入景点名称'); return; }
+    if (spots.includes(name)) { alert('景点已存在'); return; }
+    spots.push(name);
+    adjList.set(spots.length - 1, []);
+    rebuildMatrix();
+    updateSelects();
+    highlightEdges = [];
+    tourPath = [];
+    drawGraph();
+    setStatus('✅ 已添加景点：' + name);
+    outputToArea('添加景点：' + name + '（编号：' + (spots.length - 1) + '）');
+    input.value = '';
+}
+
+function addEdge() {
+    const from = parseInt(document.getElementById('edgeFrom').value);
+    const to = parseInt(document.getElementById('edgeTo').value);
+    const weight = parseInt(document.getElementById('edgeWeight').value);
+    if (isNaN(from) || isNaN(to)) { alert('请选择景点'); return; }
+    if (from === to) { alert('不能添加自环边'); return; }
+    if (isNaN(weight) || weight <= 0) { alert('请输入有效的距离'); return; }
+    const exist = adjList.get(from).find(e => e.to === to);
+    if (exist) { alert('该边已存在'); return; }
+    adjList.get(from).push({ to, weight });
+    adjList.get(to).push({ to: from, weight });
+    rebuildMatrix();
+    updateSelects();
+    highlightEdges = [];
+    tourPath = [];
+    drawGraph();
+    setStatus('✅ 已添加边：' + spots[from] + ' — ' + spots[to] + ' (' + weight + ')');
+    outputToArea('添加边：' + spots[from] + ' ↔ ' + spots[to] + '，距离=' + weight);
+    document.getElementById('edgeWeight').value = '';
+}
+
+function resetSystem() {
+    spots = [];
+    adjList = new Map();
+    adjMatrix = [];
+    tourPath = [];
+    highlightEdges = [];
+    updateSelects();
+    drawGraph();
+    setStatus('🟢 系统已重置');
+    outputToArea('<em>系统已重置，点击"加载预设数据"开始</em>');
+}
+
+// ==================== 辅助 ====================
+function setStatus(msg) { document.getElementById('statusText').textContent = msg; }
+function outputToArea(html) { document.getElementById('outputArea').innerHTML = html.replace(/\n/g, '<br>'); }
+
+// ==================== 初始化 ====================
+updateSelects();
+drawGraph();
+setStatus('🟢 就绪 — 点击"加载预设数据"开始');
+
+// ==================== 占位：后续功能逐步实现 ====================
+function displayMatrix() { outputToArea('<em>该功能将在下一步实现</em>'); }
+function dfsTour() { outputToArea('<em>该功能将在下一步实现</em>'); }
+function detectCycle() { outputToArea('<em>该功能将在下一步实现</em>'); }
+function showDijkstra() { outputToArea('<em>该功能将在下一步实现</em>'); }
+function runDijkstra() { outputToArea('<em>该功能将在下一步实现</em>'); }
+function primMST() { outputToArea('<em>该功能将在下一步实现</em>'); }
+</script>
+</body>
+</html>
