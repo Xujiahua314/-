@@ -1,9 +1,3 @@
-# 编译产物
-*.exe
-*.o
-*.out
-scenic_guide
-
 # IDE
 .vscode/
 .idea/
