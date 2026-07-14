@@ -51,7 +51,6 @@
             min-height: 580px;
         }
 
-        /* ===== Canvas 面板 ===== */
         .canvas-panel {
             flex: 1 1 62%;
             background: var(--card-bg);
@@ -61,6 +60,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            min-height: 400px;
         }
         .canvas-header {
             display: flex;
@@ -71,6 +71,7 @@
             font-size: 14px;
             font-weight: 600;
             color: var(--text);
+            flex-shrink: 0;
         }
         .canvas-header .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--primary); }
         .canvas-header .hint {
@@ -79,9 +80,8 @@
             font-weight: 400;
             color: #999;
         }
-        #mapCanvas { flex: 1; width: 100%; cursor: pointer; }
+        #mapCanvas { flex: 1; width: 100%; cursor: pointer; display: block; }
 
-        /* ===== 右侧面板 ===== */
         .control-panel {
             flex: 0 0 370px;
             display: flex;
@@ -175,7 +175,7 @@
         .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; }
         .legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 
-        /* ===== 景点详情弹窗 ===== */
+        /* 景点详情弹窗 */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -184,11 +184,9 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            animation: fadeIn 0.25s ease;
         }
         .modal-overlay.active { display: flex; }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         .modal {
@@ -201,12 +199,8 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             animation: slideUp 0.3s ease;
         }
-        .modal-body { padding: 20px 24px; }
-        .modal-body h2 {
-            font-size: 22px;
-            color: var(--primary);
-            margin-bottom: 4px;
-        }
+        .modal-body { padding: 24px; }
+        .modal-body h2 { font-size: 22px; color: var(--primary); margin-bottom: 4px; }
         .modal-body .spot-tag {
             display: inline-block;
             background: #e8f5e9;
@@ -228,10 +222,10 @@
         .modal-body .nearby { font-size: 12px; color: #888; margin-top: 8px; }
         .modal-body .nearby a { color: var(--accent); cursor: pointer; text-decoration: underline; }
         .modal-close {
-            position: sticky; top: 0; float: right;
-            background: rgba(255,255,255,0.9); border: none;
+            position: sticky; top: 12px; float: right; margin-right: 12px;
+            background: rgba(255,255,255,0.95); border: none;
             width: 36px; height: 36px; border-radius: 50%;
-            font-size: 20px; cursor: pointer; margin: 10px 10px 0 0;
+            font-size: 20px; cursor: pointer;
             z-index: 10; color: #333;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 2px 6px rgba(0,0,0,0.15);
@@ -249,80 +243,74 @@
 <body>
 
 <div class="header">
-    <span class="logo">🏔️</span>
+    <span class="logo">&#x1F3D4;</span>
     <h1>景区路径规划系统</h1>
     <span class="subtitle">数据结构实训 — 许嘉华 202509604228</span>
 </div>
 
 <div class="main-container">
-    <!-- 左侧 Canvas -->
     <div class="canvas-panel">
         <div class="canvas-header">
             <span class="dot"></span> 景区景点分布图
-            <span class="hint">💡 点击图中景点可查看详细介绍</span>
+            <span class="hint">&#x1F4A1; 点击图中景点可查看详细介绍</span>
         </div>
         <canvas id="mapCanvas"></canvas>
     </div>
 
-    <!-- 右侧控制面板 -->
-    <div class="control-panel" id="controlPanel">
-        <!-- 功能菜单 -->
+    <div class="control-panel">
         <div class="card">
-            <h3><span class="icon">🎛️</span> 功能菜单</h3>
+            <h3><span class="icon">&#x1F39B;</span> 功能菜单</h3>
             <div class="btn-group">
-                <button class="btn primary" onclick="loadPreset()">📥 加载预设数据</button>
-                <button class="btn" onclick="displayMatrix()">📊 展示邻接矩阵</button>
-                <button class="btn" onclick="dfsTour()">🗺️ DFS 导游线路</button>
-                <button class="btn warn" onclick="detectCycle()">🔁 回路检测</button>
-                <button class="btn accent" onclick="showDijkstra()">📏 最短路径查询</button>
-                <button class="btn primary" onclick="primMST()">🌳 最小生成树</button>
+                <button class="btn primary" id="btnLoad">&#x1F4E5; 加载预设数据</button>
+                <button class="btn" id="btnMatrix">&#x1F4CA; 展示邻接矩阵</button>
+                <button class="btn" id="btnDfs">&#x1F5FA; DFS 导游线路</button>
+                <button class="btn warn" id="btnCycle">&#x1F501; 回路检测</button>
+                <button class="btn accent" id="btnDijkstra">&#x1F4CF; 最短路径查询</button>
+                <button class="btn primary" id="btnPrim">&#x1F333; 最小生成树</button>
             </div>
         </div>
 
-        <!-- 景点查询 -->
         <div class="card">
-            <h3><span class="icon">🔍</span> 景点查询</h3>
+            <h3><span class="icon">&#x1F50D;</span> 景点查询</h3>
             <div class="input-row">
                 <label>选择景点：</label>
-                <select id="spotSelect" onchange="onSpotSelect()">
+                <select id="spotSelect">
                     <option value="">-- 请先加载数据 --</option>
                 </select>
             </div>
-            <button class="btn primary" onclick="viewSelectedSpot()" style="margin-top:6px;width:100%;">
-                📖 查看景点详情
+            <button class="btn primary" id="btnViewSpot" style="margin-top:6px;width:100%;">
+                &#x1F4D6; 查看景点详情
             </button>
             <div style="font-size:11px;color:#999;margin-top:6px;">
-                💡 也可在左侧分布图中直接点击景点圆形图标
+                &#x1F4A1; 也可在左侧分布图中直接点击景点圆形图标
             </div>
         </div>
 
-        <!-- 最短路径查询 -->
         <div class="card" id="dijkstraCard" style="display:none;">
-            <h3><span class="icon">📏</span> 最短路径查询（Dijkstra）</h3>
+            <h3><span class="icon">&#x1F4CF;</span> 最短路径查询（Dijkstra）</h3>
             <div class="input-row"><label>起点：</label><select id="dijkFrom"></select></div>
             <div class="input-row"><label>终点：</label><select id="dijkTo"></select></div>
-            <button class="btn accent" onclick="runDijkstra()">🔍 查询最短路径</button>
+            <button class="btn accent" id="btnRunDijkstra">&#x1F50D; 查询最短路径</button>
             <div id="dijkResult" class="result-area" style="margin-top:8px; display:none;"></div>
         </div>
 
-        <!-- 输出结果 -->
         <div class="card">
-            <h3><span class="icon">📋</span> 输出结果</h3>
+            <h3><span class="icon">&#x1F4CB;</span> 输出结果</h3>
             <div class="result-area" id="outputArea"><em>点击"加载预设数据"开始使用系统</em></div>
         </div>
     </div>
 </div>
 
 <!-- 景点详情弹窗 -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-    <div class="modal" id="modal" onclick="event.stopPropagation()">
-        <button class="modal-close" onclick="closeModalDirect()">✕</button>
-        <div class="modal-body" style="padding-top:10px;">
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modal">
+        <button class="modal-close" id="modalClose">&#x2715;</button>
+        <div class="modal-body">
             <h2 id="modalTitle"></h2>
             <span class="spot-tag" id="modalTag"></span>
             <div class="info-row">
-                <span>📍 编号：<strong id="modalId"></strong></span>
-                <span>🔗 邻接景点：<strong id="modalNeighbors"></strong></span>
+                <span>&#x1F4CD; 编号：<strong id="modalId"></strong></span>
+                <span>&#x1F517; 邻接景点：<strong id="modalNeighbors"></strong></span>
             </div>
             <div class="desc" id="modalDesc"></div>
             <div class="nearby" id="modalNearby"></div>
@@ -332,7 +320,7 @@
 
 <!-- 底部状态栏 -->
 <div class="status-bar">
-    <span id="statusText">🟢 就绪</span>
+    <span id="statusText">&#x1F7E2; 就绪</span>
     <span style="margin-left:auto;">景点数：<strong id="spotCount">0</strong></span>
     <span>边数：<strong id="edgeCount">0</strong></span>
     <div class="legend">
@@ -344,115 +332,138 @@
 </div>
 
 <script>
+(function() {
+'use strict';
+
+// ==================== 常量 ====================
+var INF = 32767;
+
 // ==================== 全局状态 ====================
-const INF = 32767;
-let spots = [];
-let adjList = new Map();
-let adjMatrix = [];
-let tourPath = [];
-let highlightEdges = [];
+var spots = [];
+var adjList = new Map();
+var adjMatrix = [];
+var tourPath = [];
+var highlightEdges = [];
+
+// ==================== DOM 引用（等 DOM 就绪后再绑定） ====================
+var canvas, ctx, nodePositions = [];
+var domOutputArea, domStatusText, domSpotCount, domEdgeCount;
+var domSpotSelect, domDijkFrom, domDijkTo;
+var domDijkstraCard, domDijkResult;
+var domModalOverlay, domModalTitle, domModalTag, domModalId, domModalNeighbors, domModalDesc, domModalNearby;
 
 // ==================== 景点介绍数据 ====================
-const spotInfoMap = {
+var spotInfoMap = {
     "大门": {
-        tag: "🏛️ 入口",
-        desc: "景区正大门，始建于明代，是一座气势恢宏的三开间石牌坊。门楣上镌刻着清代书法家题写的"翠微胜境"四个大字，笔力遒劲，金粉犹存。门前左右各立一尊石狮，威武庄严，守护着这片山水的千年灵韵。大门两侧古松参天，每逢清晨雾气缭绕之时，游人步入其中，恍若穿越时光之门，进入世外桃源。"
+        tag: "🏛 入口",
+        desc: "景区正大门，始建于明代，是一座气势恢宏的三开间石牌坊。门楥上镬刻着清代书法家题写的“翠微胜境”四个大字，笔力遒劲，金粉犹存。门前左右各立一尊石狮，威武庄严，守护着这片山水的千年灵韵。大门两侧古松参天，每逢清晨雾气缭绕之时，游人步入其中，恍若穿越时光之门，进入世外桃源。"
     },
     "碧玉潭": {
         tag: "💧 水景",
-        desc: "碧玉潭因潭水碧绿如玉而得名，是景区内最负盛名的水景。潭深约三丈，水质清澈见底，水下卵石历历可数。相传唐代诗人李白游历至此，见潭水澄澈如镜、倒映青山翠竹，不禁赞叹"此水只应天上有"。潭边建有凉亭一座，供游人休憩赏景。夏日荷花开遍潭面，清香四溢；秋日枫叶倒映水中，红绿交织，美不胜收。"
+        desc: "碧玉潭因潭水碧绿如玉而得名，是景区内最负盛名的水景。潭深约三丈，水质清澈见底，水下卵石历历可数。相传唐代诗人李白游历至此，见潭水澄澈如镜、倒映青山翠竹，不禁赞叹“此水只应天上有”。潭边建有凉亭一座，供游人休憩赏景。夏日荷花开遍潭面，清香四溢；秋日枫叶倒映水中，红绿交织，美不胜收。"
     },
     "红叶林": {
         tag: "🍁 秋色",
-        desc: "红叶林占地约五十亩，栽种了数千棵鸡爪槭和红枫。每年十月至十一月，整片山林层林尽染，从橙黄到深红，层次分明，宛如一幅浓墨重彩的油画。林间铺设了蜿蜒的木栈道，游客穿行其中，脚下落叶沙沙作响，抬头红叶遮天蔽日。摄影爱好者常在此蹲守日出和日落时分，捕捉光影穿透红叶的绝美瞬间。红叶林也是景区最大的天然氧吧，负氧离子含量极高。"
+        desc: "红叶林占地约五十亩，栽种了数千棵鸡爪槻和红枫。每年十月至十一月，整片山林层林尽染，从橙黄到深红，层次分明，宛如一幅浓墨重彩的油画。林间铺设了蜿蜒的木栈道，游客穿行其中，脚下落叶沙沙作响，抬头红叶遮天蔽日。摄影爱好者常在此蹲守日出和日落时分，捕捉光影穿透红叶的绝美瞬间。红叶林也是景区最大的天然氧吧，负氧离子含量极高。"
     },
     "赏花园": {
         tag: "🌸 花卉",
-        desc: "赏花园是一座典型的江南园林式花园，占地约二十亩。园中按季节分片种植了牡丹、芍药、菊花、梅花等传统名花，确保四季有花可赏。春季牡丹盛开时最为热闹，姹紫嫣红、争奇斗艳，吸引无数游客驻足拍照。园中还有一座小巧精致的假山和曲水流觞的景观小品，充满了文人雅趣。每年四月举办的"百花节"是景区最盛大的活动之一。"
+        desc: "赏花园是一座典型的江南园林式花园，占地约二十亩。园中按季节分片种植了牡丹、芍药、菊花、梅花等传统名花，确保四季有花可赏。春季牡丹盛开时最为热闹，姣紫嫣红、争奇斗艳，吸引无数游客驻足拍照。园中还有一座小巧精致的假山和曲水流觞的景观小品，充满了文人雅趣。每年四月举办的“百花节”是景区最盛大的活动之一。"
     },
     "飞云石": {
         tag: "🪨 奇石",
-        desc: "飞云石是一块高达十余米的巨型花岗岩，因其形状奇特、宛如一朵凝固的飞云而得名。岩石表面布满了千百年来风雨侵蚀形成的纹理，远观如行云流水，近看似龙鳞虎斑。地质学家考证，此石形成于约两亿年前的中生代，是地壳运动的产物。石顶有一小平台，胆大的游客可攀登至顶，俯瞰整个景区的壮丽景色。当地流传着"摸飞云石、好运即来"的说法，岩石下部已被游人摸得光滑发亮。",
+        desc: "飞云石是一块高达十余米的巨型花岗岩，因其形状奇特、宛如一朵凝固的飞云而得名。岩石表面布满了千百年来风雨侵蚀形成的纹理，远观如行云流水，近看似龙鳞虎斑。地质学家考证，此石形成于约两亿年前的中生代，是地壳运动的产物。石顶有一小平台，胆大的游客可攀登至顶，俯瞰整个景区的壮丽景色。当地流传着“摸飞云石、好运即来”的说法，岩石下部已被游人摸得光滑发亮。"
     },
     "九曲桥": {
         tag: "🌉 古桥",
-        desc: "九曲桥是一座横跨碧玉潭的古典石拱桥，全长约五十米，桥身九折九曲，寓意"九曲十八弯，步步高升"。桥面铺设青石板，两侧有精致的石雕栏杆，栏板上雕刻着梅兰竹菊和祥云瑞兽图案。据说此桥由清代一位告老还乡的工部侍郎捐资修建，桥成之日有九只白鹤盘旋其上，被视为祥瑞之兆。漫步桥上，移步换景，每一个转角都能看到不同的湖光山色。",
+        desc: "九曲桥是一座横跨碧玉潭的古典石拱桥，全长约五十米，桥身九折九曲，寓意“九曲十八弯，步步高升”。桥面铺设青石板，两侧有精致的石雕栏杆，栏板上雕刻着梅兰竹菊和祥云瑞兽图案。据说此桥由清代一位告老还乡的工部侍郎捐资修建，桥成之日有九只白鹤盘旋其上，被视为祥瑞之兆。漫步桥上，移步换景，每一个转角都能看到不同的湖光山色。"
     },
     "白虎岩": {
         tag: "🐯 奇石",
-        desc: "白虎岩因山体岩石呈白色，且形似一只匍匐欲扑的猛虎而得名。岩石主体为白色石英岩，在阳光照射下银光闪闪，与周围的苍翠树林形成鲜明对比。虎头部位面向西方，恰合传统文化中"白虎"为西方神兽的说法，被当地人视为镇山灵石。岩下有天然形成的岩洞，洞内钟乳石千姿百态，夏季洞内凉爽如秋，是避暑纳凉的好去处。每年端午，当地百姓有在此舞龙祈福的习俗。",
+        desc: "白虎岩因山体岩石呈白色，且形似一只匍伎欲扑的猛虎而得名。岩石主体为白色石英岩，在阳光照射下银光闪闪，与周围的苍翠树林形成鲜明对比。虎头部位面向西方，恰合传统文化中“白虎”为西方神兽的说法，被当地人视为镇山灵石。岩下有天然形成的岩洞，洞内钟乳石千姿百态，夏季洞内凉爽如秋，是避暑纳凉的好去处。每年端午，当地百姓有在此舞龙祈福的习俗。"
     },
     "观月阁": {
         tag: "🏯 楼阁",
-        desc: "观月阁坐落于景区最高处的翠微峰顶，是一座三层飞檐攒尖顶的仿古建筑。阁高约二十米，朱柱碧瓦，飞檐翘角，气势不凡。登上阁楼顶层，极目远眺，可将整个景区及周边数十里山水尽收眼底。每逢中秋之夜，一轮圆月从东山升起，清辉洒满山川，阁中赏月已成为当地最富盛名的风雅活动。历代文人墨客在此留下了大量诗词题咏，阁内至今保存着十余块碑刻。",
+        desc: "观月阁坐落于景区最高处的翠微峰顶，是一座三层飞檐攒尖顶的仿古建筑。阁高约二十米，朱柱碧瓦，飞檐翘角，气势不凡。登上阁楼顶层，极目远瞥，可将整个景区及周边数十里山水尽收眼底。每逢中秋之夜，一轮圆月从东山升起，清辉洒满山川，阁中赏月已成为当地最富盛名的风雅活动。历代文人墨客在此留下了大量诗词题咏，阁内至今保存着十余块碑刻。"
     }
 };
 
-// ==================== Canvas ====================
-const canvas = document.getElementById('mapCanvas');
-const ctx = canvas.getContext('2d');
-let nodePositions = [];
+// ==================== Canvas 初始化 ====================
+function setupCanvas() {
+    canvas = document.getElementById('mapCanvas');
+    ctx = canvas.getContext('2d');
+}
 
 function resizeCanvas() {
-    const panel = canvas.parentElement;
-    canvas.width = panel.clientWidth - 2;
-    canvas.height = panel.clientHeight - 42;
+    if (!canvas) return;
+    var panel = canvas.parentElement;
+    var w = panel.clientWidth - 2;
+    var h = panel.clientHeight - 42;
+    if (w <= 0 || h <= 0) return;
+    canvas.width = w;
+    canvas.height = h;
     drawGraph();
 }
-window.addEventListener('resize', () => { resizeCanvas(); });
-resizeCanvas();
 
 // ==================== 数据操作 ====================
 function rebuildMatrix() {
-    const n = spots.length;
-    adjMatrix = Array.from({ length: n }, () => Array(n).fill(INF));
-    for (let i = 0; i < n; i++) adjMatrix[i][i] = 0;
-    for (let [from, edges] of adjList) {
-        for (let { to, weight } of edges) {
-            adjMatrix[from][to] = weight;
-            adjMatrix[to][from] = weight;
+    var n = spots.length;
+    adjMatrix = [];
+    for (var i = 0; i < n; i++) {
+        adjMatrix[i] = [];
+        for (var j = 0; j < n; j++) {
+            adjMatrix[i][j] = (i === j) ? 0 : INF;
         }
     }
+    adjList.forEach(function(edges, from) {
+        edges.forEach(function(e) {
+            adjMatrix[from][e.to] = e.weight;
+            adjMatrix[e.to][from] = e.weight;
+        });
+    });
 }
 
 function updateSelects() {
-    const sels = ['dijkFrom','dijkTo','spotSelect'];
-    sels.forEach(id => {
-        const sel = document.getElementById(id);
+    var sels = ['dijkFrom', 'dijkTo', 'spotSelect'];
+    sels.forEach(function(id) {
+        var sel = document.getElementById(id);
         if (!sel) return;
-        const v = sel.value;
+        var v = sel.value;
         if (id === 'spotSelect') {
             sel.innerHTML = '<option value="">-- 选择景点 --</option>' +
-                spots.map((s,i) => `<option value="${i}">[${i}] ${s}</option>`).join('');
+                spots.map(function(s, i) { return '<option value="' + i + '">[' + i + '] ' + s + '</option>'; }).join('');
         } else {
-            sel.innerHTML = spots.map((s,i) => `<option value="${i}">${s}</option>`).join('');
+            sel.innerHTML = spots.map(function(s, i) { return '<option value="' + i + '">' + s + '</option>'; }).join('');
         }
         if (v !== '' && parseInt(v) < spots.length) sel.value = v;
     });
-    document.getElementById('spotCount').textContent = spots.length;
-    let ec = 0;
-    for (let edges of adjList.values()) ec += edges.length;
-    document.getElementById('edgeCount').textContent = Math.floor(ec / 2);
+    domSpotCount.textContent = spots.length;
+    var ec = 0;
+    adjList.forEach(function(edges) { ec += edges.length; });
+    domEdgeCount.textContent = Math.floor(ec / 2);
 }
 
 // ==================== Canvas 绘制 ====================
 function computeNodePositions() {
-    const n = spots.length;
-    const w = canvas.width, h = canvas.height;
-    const cx = w / 2, cy = h / 2;
-    const rx = Math.min(w, h) * 0.37;
-    const ry = Math.min(w, h) * 0.30;
-    const pos = [];
-    for (let i = 0; i < n; i++) {
-        const angle = (2 * Math.PI * i) / n - Math.PI / 2;
+    var n = spots.length;
+    var w = canvas.width, h = canvas.height;
+    var cx = w / 2, cy = h / 2;
+    var rx = Math.min(w, h) * 0.37;
+    var ry = Math.min(w, h) * 0.30;
+    var pos = [];
+    for (var i = 0; i < n; i++) {
+        var angle = (2 * Math.PI * i) / n - Math.PI / 2;
         pos.push({ x: cx + rx * Math.cos(angle), y: cy + ry * Math.sin(angle) });
     }
     return pos;
 }
 
 function drawGraph() {
-    if (!canvas.width || !canvas.height) return;
+    if (!canvas || !ctx) return;
+    if (canvas.width <= 0 || canvas.height <= 0) return;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     if (spots.length === 0) {
         ctx.fillStyle = '#aaa';
         ctx.font = '16px "Microsoft YaHei", sans-serif';
@@ -463,51 +474,51 @@ function drawGraph() {
     }
 
     nodePositions = computeNodePositions();
-    const pos = nodePositions;
+    var pos = nodePositions;
 
     // 高亮边集合
-    const hlSet = new Set();
-    for (let h of highlightEdges) {
-        hlSet.add(`${h.from},${h.to}`);
-        hlSet.add(`${h.to},${h.from}`);
-    }
+    var hlSet = {};
+    highlightEdges.forEach(function(h) {
+        hlSet[h.from + ',' + h.to] = h;
+        hlSet[h.to + ',' + h.from] = h;
+    });
 
     // 绘边
-    const drawn = new Set();
-    for (let [from, edges] of adjList) {
-        for (let { to, weight } of edges) {
-            const key = `${Math.min(from, to)},${Math.max(from, to)}`;
-            if (drawn.has(key)) continue;
-            drawn.add(key);
+    var drawn = {};
+    adjList.forEach(function(edges, from) {
+        edges.forEach(function(e) {
+            var to = e.to, weight = e.weight;
+            var key = Math.min(from, to) + ',' + Math.max(from, to);
+            if (drawn[key]) return;
+            drawn[key] = true;
 
-            const x1 = pos[from].x, y1 = pos[from].y;
-            const x2 = pos[to].x, y2 = pos[to].y;
-            const isHL = hlSet.has(`${from},${to}`);
+            var x1 = pos[from].x, y1 = pos[from].y;
+            var x2 = pos[to].x, y2 = pos[to].y;
+            var hlEdge = hlSet[from + ',' + to];
+            var isHL = !!hlEdge;
 
             ctx.beginPath();
             ctx.moveTo(x1, y1);
             ctx.lineTo(x2, y2);
-            const hlEdge = highlightEdges.find(h =>
-                (h.from === from && h.to === to) || (h.from === to && h.to === from));
-            ctx.strokeStyle = isHL ? (hlEdge?.color || '#e63946') : '#bbb';
+            ctx.strokeStyle = isHL ? (hlEdge.color || '#e63946') : '#bbb';
             ctx.lineWidth = isHL ? 3.5 : 2;
             ctx.stroke();
 
             // 权重标签
-            const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
-            const angle = Math.atan2(y2 - y1, x2 - x1);
+            var mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+            var angle = Math.atan2(y2 - y1, x2 - x1);
             ctx.fillStyle = isHL ? '#000' : '#666';
             ctx.font = 'bold 13px "Consolas", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(weight, mx + 12 * Math.sin(angle), my - 12 * Math.cos(angle));
-        }
-    }
+        });
+    });
 
     // 绘节点
-    for (let i = 0; i < spots.length; i++) {
-        const { x, y } = pos[i];
-        const inTour = tourPath.includes(i);
+    for (var i = 0; i < spots.length; i++) {
+        var x = pos[i].x, y = pos[i].y;
+        var inTour = tourPath.indexOf(i) !== -1;
 
         // 阴影
         ctx.beginPath();
@@ -534,199 +545,170 @@ function drawGraph() {
         // 名称
         ctx.fillStyle = '#1b4332';
         ctx.font = 'bold 13px "Microsoft YaHei", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const label = spots[i].length > 3 ? spots[i].substring(0, 3) : spots[i];
-        ctx.fillText(label, x, y);
+        ctx.fillText(spots[i], x, y);
 
-        // 光标提示
+        // 放大镜图标
         ctx.fillStyle = '#40916c';
         ctx.font = '9px "Microsoft YaHei", sans-serif';
         ctx.fillText('🔍', x + 20, y - 18);
     }
 }
 
-// ==================== Canvas 点击检测 ====================
-canvas.addEventListener('click', function(e) {
-    if (spots.length === 0) return;
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const cx = mx * scaleX;
-    const cy = my * scaleY;
-
-    for (let i = 0; i < nodePositions.length; i++) {
-        const { x, y } = nodePositions[i];
-        const dist = Math.sqrt((cx - x) ** 2 + (cy - y) ** 2);
-        if (dist <= 26) {
-            showSpotDetail(i);
-            return;
-        }
-    }
-});
-
 // ==================== 景点详情弹窗 ====================
 function showSpotDetail(index) {
-    const name = spots[index];
-    const info = spotInfoMap[name] || {
-        tag: "📍 景点",
-        desc: "暂无详细介绍。",
-    };
+    var name = spots[index];
+    var info = spotInfoMap[name] || { tag: "📍 景点", desc: "暂无详细介绍。" };
 
-    document.getElementById('modalTitle').textContent = name;
-    document.getElementById('modalTag').textContent = info.tag;
-    document.getElementById('modalId').textContent = index;
+    domModalTitle.textContent = name;
+    domModalTag.textContent = info.tag;
+    domModalId.textContent = index;
 
-    // 邻接景点
-    const neighbors = adjList.get(index) || [];
-    const neighborStr = neighbors.length > 0
-        ? neighbors.map(e => `${spots[e.to]}(${e.weight})`).join('、')
+    var neighbors = adjList.get(index) || [];
+    var neighborStr = neighbors.length > 0
+        ? neighbors.map(function(e) { return spots[e.to] + '(' + e.weight + ')'; }).join('、')
         : '无';
-    document.getElementById('modalNeighbors').textContent = neighborStr;
+    domModalNeighbors.textContent = neighborStr;
 
-    document.getElementById('modalDesc').textContent = info.desc;
+    domModalDesc.textContent = info.desc;
 
-    // 临近景点快捷跳转
     if (neighbors.length > 0) {
-        let nearbyHtml = '🧭 邻近景点：';
-        neighbors.forEach(e => {
-            nearbyHtml += `<a onclick="showSpotDetail(${e.to})">${spots[e.to]}</a> `;
+        var nearbyHtml = '🧭 邻近景点：';
+        neighbors.forEach(function(e) {
+            nearbyHtml += '<a onclick="showSpotDetail(' + e.to + ')">' + spots[e.to] + '</a> ';
         });
-        document.getElementById('modalNearby').innerHTML = nearbyHtml;
+        domModalNearby.innerHTML = nearbyHtml;
     } else {
-        document.getElementById('modalNearby').innerHTML = '';
+        domModalNearby.innerHTML = '';
     }
 
-    document.getElementById('modalOverlay').classList.add('active');
+    domModalOverlay.classList.add('active');
     setStatus('📖 正在查看景点：' + name);
 }
 
-function onSpotSelect() {
-    // 选中后不做额外操作，等待用户点"查看详情"
-}
-
 function viewSelectedSpot() {
-    const sel = document.getElementById('spotSelect');
-    const idx = parseInt(sel.value);
+    var sel = document.getElementById('spotSelect');
+    var idx = parseInt(sel.value);
     if (isNaN(idx)) { alert('请先选择一个景点'); return; }
     showSpotDetail(idx);
 }
 
-function closeModal(e) {
-    if (e.target === document.getElementById('modalOverlay')) {
-        document.getElementById('modalOverlay').classList.remove('active');
-    }
-}
-
-function closeModalDirect() {
-    document.getElementById('modalOverlay').classList.remove('active');
+function closeModal() {
+    domModalOverlay.classList.remove('active');
 }
 
 // 键盘 ESC 关闭弹窗
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        document.getElementById('modalOverlay').classList.remove('active');
+        domModalOverlay.classList.remove('active');
     }
 });
 
 // ==================== 功能：加载预设数据 ====================
 function loadPreset() {
-    // 重置
     spots = [];
     adjList = new Map();
     adjMatrix = [];
     tourPath = [];
     highlightEdges = [];
 
-    const presetSpots = ['大门', '碧玉潭', '红叶林', '赏花园', '飞云石', '九曲桥', '白虎岩', '观月阁'];
-    const presetEdges = [
+    var presetSpots = ['大门', '碧玉潭', '红叶林', '赏花园', '飞云石', '九曲桥', '白虎岩', '观月阁'];
+    var presetEdges = [
         [0,1,5], [0,2,8], [1,3,3], [2,3,4],
         [2,4,6], [3,4,2], [4,5,7], [5,6,4], [6,7,5]
     ];
-    for (let s of presetSpots) {
+
+    presetSpots.forEach(function(s) {
         spots.push(s);
         adjList.set(spots.length - 1, []);
-    }
-    for (let [u, v, w] of presetEdges) {
+    });
+
+    presetEdges.forEach(function(e) {
+        var u = e[0], v = e[1], w = e[2];
         adjList.get(u).push({ to: v, weight: w });
         adjList.get(v).push({ to: u, weight: w });
-    }
+    });
+
     rebuildMatrix();
     updateSelects();
     drawGraph();
+
     setStatus('✅ 已加载预设数据：' + spots.length + '个景点，9条边');
-    outputToArea('预设数据加载成功！\n\n景点列表（点击景点名称或分布图上的圆形图标可查看详情）：\n' +
-        spots.map((s,i) => `  [${i}] ${s}`).join('\n') +
-        '\n\n边列表（9条）：\n  大门—碧玉潭(5)  大门—红叶林(8)\n' +
-        '  碧玉潭—赏花园(3)  红叶林—赏花园(4)\n' +
-        '  红叶林—飞云石(6)  赏花园—飞云石(2)\n' +
-        '  飞云石—九曲桥(7)  九曲桥—白虎岩(4)\n' +
-        '  白虎岩—观月阁(5)');
+    domOutputArea.innerHTML = '预设数据加载成功！<br><br>景点列表（点击分布图上的圆形图标可查看详情）：<br>' +
+        spots.map(function(s, i) { return '  [' + i + '] ' + s; }).join('<br>') +
+        '<br><br>边列表（9条）：<br>' +
+        '  大门—碧玉潭(5) &nbsp; 大门—红叶林(8)<br>' +
+        '  碧玉潭—赏花园(3) &nbsp; 红叶林—赏花园(4)<br>' +
+        '  红叶林—飞云石(6) &nbsp; 赏花园—飞云石(2)<br>' +
+        '  飞云石—九曲桥(7) &nbsp; 九曲桥—白虎岩(4)<br>' +
+        '  白虎岩—观月阁(5)';
 }
 
 // ==================== 功能：展示邻接矩阵 ====================
 function displayMatrix() {
     if (spots.length === 0) { alert('请先加载数据'); return; }
     rebuildMatrix();
-    const n = spots.length;
-    let html = '<table class="matrix-table"><thead><tr><th>景点</th>';
-    for (let i = 0; i < n; i++) html += `<th>${spots[i]}</th>`;
+    var n = spots.length;
+    var html = '<table class="matrix-table"><thead><tr><th>景点</th>';
+    for (var i = 0; i < n; i++) html += '<th>' + spots[i] + '</th>';
     html += '</tr></thead><tbody>';
-    for (let i = 0; i < n; i++) {
-        html += `<tr><th>${spots[i]}</th>`;
-        for (let j = 0; j < n; j++) {
-            const v = adjMatrix[i][j];
-            html += `<td${v === INF ? ' class="inf"' : ''}>${v === INF ? '∞' : v}</td>`;
+    for (var i = 0; i < n; i++) {
+        html += '<tr><th>' + spots[i] + '</th>';
+        for (var j = 0; j < n; j++) {
+            var v = adjMatrix[i][j];
+            html += '<td' + (v === INF ? ' class="inf"' : '') + '>' + (v === INF ? '∞' : v) + '</td>';
         }
         html += '</tr>';
     }
     html += '</tbody></table>';
-    document.getElementById('outputArea').innerHTML = html;
+    domOutputArea.innerHTML = html;
     setStatus('📊 已展示邻接矩阵（∞ = ' + INF + ' = 无连通路径）');
 }
 
 // ==================== 功能：DFS 导游线路 ====================
 function dfsTour() {
     if (spots.length === 0) { alert('请先加载数据'); return; }
-    const visited = new Set();
+    var visited = {};
     tourPath = [];
 
     function dfs(v) {
-        visited.add(v);
+        visited[v] = true;
         tourPath.push(v);
-        const neighbors = adjList.get(v) || [];
-        for (let { to } of neighbors) {
-            if (!visited.has(to)) {
-                dfs(to);
+        var neighbors = adjList.get(v) || [];
+        neighbors.forEach(function(e) {
+            if (!visited[e.to]) {
+                dfs(e.to);
                 tourPath.push(v);
             }
-        }
+        });
     }
     dfs(0);
 
     highlightEdges = [];
-    for (let i = 0; i < tourPath.length - 1; i++) {
-        const from = tourPath[i], to = tourPath[i + 1];
+    for (var i = 0; i < tourPath.length - 1; i++) {
+        var from = tourPath[i], to = tourPath[i + 1];
         if (from !== to) {
-            highlightEdges.push({ from, to, color: '#457b9d' });
+            highlightEdges.push({ from: from, to: to, color: '#457b9d' });
         }
     }
     drawGraph();
 
-    const visitedCount = new Set(tourPath).size;
-    let result = 'DFS 导游线路（从 ' + spots[0] + ' 出发）：\n\n';
-    result += '遍历路径（含回溯）：\n  ' + tourPath.map(i => spots[i]).join(' → ') + '\n\n';
-    result += '覆盖景点数：' + visitedCount + ' / ' + spots.length + '\n';
-    result += '线路步数：' + tourPath.length + ' 步\n';
+    // count unique visited
+    var uniqueVisited = {};
+    tourPath.forEach(function(v) { uniqueVisited[v] = true; });
+    var visitedCount = Object.keys(uniqueVisited).length;
+
+    var result = 'DFS 导游线路（从 ' + spots[0] + ' 出发）：<br><br>';
+    result += '遍历路径（含回溯）：<br>  ' + tourPath.map(function(i) { return spots[i]; }).join(' → ') + '<br><br>';
+    result += '覆盖景点数：' + visitedCount + ' / ' + spots.length + '<br>';
+    result += '线路步数：' + tourPath.length + ' 步<br>';
+
     if (visitedCount < spots.length) {
-        result += '\n⚠️ 以下景点不可达：';
-        for (let i = 0; i < spots.length; i++) {
-            if (!visited.has(i)) result += spots[i] + '  ';
+        result += '<br>⚠️ 以下景点不可达：';
+        for (var i = 0; i < spots.length; i++) {
+            if (!uniqueVisited[i]) result += spots[i] + '  ';
         }
     }
-    outputToArea(result);
+    domOutputArea.innerHTML = result;
     setStatus('🗺️ DFS 导游线路已生成（蓝色高亮边），覆盖 ' + visitedCount + ' 个景点');
 }
 
@@ -735,124 +717,136 @@ function detectCycle() {
     if (spots.length === 0) { alert('请先加载数据'); return; }
     if (tourPath.length === 0) { alert('请先生成导游线路（DFS）'); return; }
 
-    const visitCount = {};
-    for (let v of tourPath) visitCount[v] = (visitCount[v] || 0) + 1;
-    const repeated = Object.entries(visitCount).filter(([k, c]) => c > 1);
+    var visitCount = {};
+    tourPath.forEach(function(v) { visitCount[v] = (visitCount[v] || 0) + 1; });
 
-    let result = '回路检测结果：\n\n';
+    var repeated = [];
+    Object.keys(visitCount).forEach(function(k) {
+        if (visitCount[k] > 1) repeated.push([k, visitCount[k]]);
+    });
+
+    var result = '回路检测结果：<br><br>';
     if (repeated.length > 0) {
-        result += '⚠️ 导游线路中存在回路！\n\n';
+        result += '⚠️ 导游线路中存在回路！<br><br>';
         highlightEdges = [];
-        for (let [spotIdx, count] of repeated) {
-            const idx = parseInt(spotIdx);
-            const positions = [];
-            tourPath.forEach((v, i) => { if (v === idx) positions.push(i); });
-            for (let i = 0; i < positions.length - 1; i++) {
-                const cyclePath = tourPath.slice(positions[i], positions[i + 1] + 1);
-                const cycleStr = cyclePath.map(v => spots[v]).join(' → ');
-                result += '回路（经过 ' + spots[idx] + '）：\n  ' + cycleStr + '\n  回路长度：' + (cyclePath.length - 1) + ' 步\n\n';
-                for (let j = 0; j < cyclePath.length - 1; j++) {
+        repeated.forEach(function(pair) {
+            var idx = parseInt(pair[0]);
+            var positions = [];
+            tourPath.forEach(function(v, i) { if (v === idx) positions.push(i); });
+
+            for (var i = 0; i < positions.length - 1; i++) {
+                var cyclePath = tourPath.slice(positions[i], positions[i + 1] + 1);
+                var cycleStr = cyclePath.map(function(v) { return spots[v]; }).join(' → ');
+                result += '回路（经过 ' + spots[idx] + '）：<br>  ' + cycleStr + '<br>  回路长度：' + (cyclePath.length - 1) + ' 步<br><br>';
+                for (var j = 0; j < cyclePath.length - 1; j++) {
                     highlightEdges.push({ from: cyclePath[j], to: cyclePath[j + 1], color: '#e65100' });
                 }
             }
-        }
+        });
     } else {
-        result += '✅ 导游线路中未检测到回路。\n所有景点在导游线路中均只被访问一次。\n';
+        result += '✅ 导游线路中未检测到回路。<br>所有景点在导游线路中均只被访问一次。<br>';
         highlightEdges = [];
     }
     drawGraph();
-    outputToArea(result);
+    domOutputArea.innerHTML = result;
     setStatus(repeated.length > 0 ? '🔁 检测到回路（橙色高亮边）' : '✅ 未检测到回路');
 }
 
 // ==================== 功能：Dijkstra 最短路径 ====================
-function showDijkstra() {
-    const card = document.getElementById('dijkstraCard');
-    card.style.display = card.style.display === 'none' ? 'block' : 'none';
-    if (card.style.display === 'block') updateSelects();
+function showDijkstraPanel() {
+    var card = domDijkstraCard;
+    if (card.style.display === 'none') {
+        card.style.display = 'block';
+        updateSelects();
+    } else {
+        card.style.display = 'none';
+    }
 }
 
 function runDijkstra() {
-    const start = parseInt(document.getElementById('dijkFrom').value);
-    const end = parseInt(document.getElementById('dijkTo').value);
+    var start = parseInt(domDijkFrom.value);
+    var end = parseInt(domDijkTo.value);
     if (isNaN(start) || isNaN(end)) { alert('请选择起点和终点'); return; }
     if (start === end) { alert('起点和终点不能相同'); return; }
 
-    const n = spots.length;
-    const dist = Array(n).fill(INF);
-    const prev = Array(n).fill(-1);
-    const visited = Array(n).fill(false);
+    var n = spots.length;
+    var dist = [];
+    var prev = [];
+    var visited = [];
+    for (var i = 0; i < n; i++) { dist[i] = INF; prev[i] = -1; visited[i] = false; }
     dist[start] = 0;
 
-    for (let i = 0; i < n; i++) {
-        let u = -1, minDist = INF;
-        for (let j = 0; j < n; j++) {
+    for (var i = 0; i < n; i++) {
+        var u = -1, minDist = INF;
+        for (var j = 0; j < n; j++) {
             if (!visited[j] && dist[j] < minDist) { minDist = dist[j]; u = j; }
         }
         if (u === -1) break;
         visited[u] = true;
-        for (let { to, weight } of (adjList.get(u) || [])) {
-            if (!visited[to] && dist[u] + weight < dist[to]) {
-                dist[to] = dist[u] + weight;
-                prev[to] = u;
+        var neighbors = adjList.get(u) || [];
+        neighbors.forEach(function(e) {
+            if (!visited[e.to] && dist[u] + e.weight < dist[e.to]) {
+                dist[e.to] = dist[u] + e.weight;
+                prev[e.to] = u;
             }
-        }
+        });
     }
 
     if (dist[end] === INF) {
-        document.getElementById('dijkResult').innerHTML = '❌ ' + spots[start] + ' 和 ' + spots[end] + ' 之间没有连通路径。';
-        document.getElementById('dijkResult').style.display = 'block';
+        domDijkResult.innerHTML = '❌ ' + spots[start] + ' 和 ' + spots[end] + ' 之间没有连通路径。';
+        domDijkResult.style.display = 'block';
         setStatus('❌ 无连通路径');
         return;
     }
 
-    const path = [];
-    let cur = end;
+    var path = [];
+    var cur = end;
     while (cur !== -1) { path.unshift(cur); cur = prev[cur]; }
 
     highlightEdges = [];
-    for (let i = 0; i < path.length - 1; i++) {
+    for (var i = 0; i < path.length - 1; i++) {
         highlightEdges.push({ from: path[i], to: path[i + 1], color: '#e63946' });
     }
     drawGraph();
 
-    const pathStr = path.map(i => spots[i]).join(' → ');
-    const resultHtml = '<span class="hili">🔍 最短路径查询结果</span><br><br>' +
+    var pathStr = path.map(function(i) { return spots[i]; }).join(' → ');
+    domDijkResult.innerHTML = '<span class="hili">🔍 最短路径查询结果</span><br><br>' +
         '<strong>起点：</strong>' + spots[start] + ' &nbsp;|&nbsp; <strong>终点：</strong>' + spots[end] + '<br><br>' +
         '<span class="pat">路线：' + pathStr + '</span><br>' +
         '<span class="dis">最短距离：' + dist[end] + '</span>';
-    document.getElementById('dijkResult').innerHTML = resultHtml;
-    document.getElementById('dijkResult').style.display = 'block';
+    domDijkResult.style.display = 'block';
 
-    let detail = '最短路径（' + spots[start] + ' → ' + spots[end] + '）：\n  路径：' + pathStr + '\n  距离：' + dist[end] + '\n\n途经分段：\n';
-    for (let i = 0; i < path.length - 1; i++) {
-        const w = adjMatrix[path[i]][path[i + 1]];
-        detail += '  ' + spots[path[i]] + ' — ' + spots[path[i + 1]] + ' ：' + w + '\n';
+    var detail = '最短路径（' + spots[start] + ' → ' + spots[end] + '）：<br>  路径：' + pathStr + '<br>  距离：' + dist[end] + '<br><br>途经分段：<br>';
+    for (var i = 0; i < path.length - 1; i++) {
+        var w = adjMatrix[path[i]][path[i + 1]];
+        detail += '  ' + spots[path[i]] + ' — ' + spots[path[i + 1]] + ' ：' + w + '<br>';
     }
-    detail += '  ─────────\n  总距离：' + dist[end];
-    outputToArea(detail);
+    detail += '  ─────────<br>  总距离：' + dist[end];
+    domOutputArea.innerHTML = detail;
     setStatus('📏 最短路径：' + spots[start] + ' → ' + spots[end] + '，距离 ' + dist[end] + '（红色高亮边）');
 }
 
 // ==================== 功能：Prim 最小生成树 ====================
 function primMST() {
     if (spots.length === 0) { alert('请先加载数据'); return; }
-    const n = spots.length;
-    const visited = Array(n).fill(false);
-    const mstEdges = [];
-    let totalWeight = 0;
+    var n = spots.length;
+    var visited = [];
+    for (var i = 0; i < n; i++) visited[i] = false;
+    var mstEdges = [];
+    var totalWeight = 0;
 
     visited[0] = true;
-    for (let k = 0; k < n - 1; k++) {
-        let minEdge = null, minWeight = INF;
-        for (let u = 0; u < n; u++) {
+    for (var k = 0; k < n - 1; k++) {
+        var minEdge = null, minWeight = INF;
+        for (var u = 0; u < n; u++) {
             if (!visited[u]) continue;
-            for (let { to, weight } of (adjList.get(u) || [])) {
-                if (!visited[to] && weight < minWeight) {
-                    minWeight = weight;
-                    minEdge = { from: u, to, weight };
+            var edges = adjList.get(u) || [];
+            edges.forEach(function(e) {
+                if (!visited[e.to] && e.weight < minWeight) {
+                    minWeight = e.weight;
+                    minEdge = { from: u, to: e.to, weight: e.weight };
                 }
-            }
+            });
         }
         if (!minEdge) break;
         mstEdges.push(minEdge);
@@ -861,32 +855,103 @@ function primMST() {
     }
 
     if (mstEdges.length < n - 1) {
-        outputToArea('⚠️ 图不连通，无法生成完整的最小生成树。\n已生成 ' + mstEdges.length + ' 条边。');
+        domOutputArea.innerHTML = '⚠️ 图不连通，无法生成完整的最小生成树。<br>已生成 ' + mstEdges.length + ' 条边。';
         setStatus('⚠️ 图不连通');
     } else {
-        let result = '🌳 Prim 最小生成树（扩展功能）\n\n';
-        result += 'MST 边列表：\n';
-        for (let e of mstEdges) {
-            result += '  ' + spots[e.from] + ' — ' + spots[e.to] + '  距离：' + e.weight + '\n';
-        }
-        result += '\n最小生成树总权重：' + totalWeight + '\n';
-        result += '\n💡 最小生成树可用于景区道路建设优化，以最少道路总长度连通所有景点。';
-        outputToArea(result);
+        var result = '🌳 Prim 最小生成树（扩展功能）<br><br>MST 边列表：<br>';
+        mstEdges.forEach(function(e) {
+            result += '  ' + spots[e.from] + ' — ' + spots[e.to] + '  距离：' + e.weight + '<br>';
+        });
+        result += '<br>最小生成树总权重：' + totalWeight + '<br>';
+        result += '<br>💡 最小生成树可用于景区道路建设优化，以最少道路总长度连通所有景点。';
+        domOutputArea.innerHTML = result;
         setStatus('🌳 最小生成树总权重：' + totalWeight + '（绿色高亮边）');
     }
 
-    highlightEdges = mstEdges.map(e => ({ from: e.from, to: e.to, color: '#2d6a4f' }));
+    highlightEdges = mstEdges.map(function(e) { return { from: e.from, to: e.to, color: '#2d6a4f' }; });
     drawGraph();
 }
 
 // ==================== 辅助 ====================
-function setStatus(msg) { document.getElementById('statusText').textContent = msg; }
-function outputToArea(html) { document.getElementById('outputArea').innerHTML = html.replace(/\n/g, '<br>'); }
+function setStatus(msg) { domStatusText.textContent = msg; }
 
 // ==================== 初始化 ====================
-updateSelects();
-drawGraph();
-setStatus('🟢 就绪 — 点击"加载预设数据"开始使用');
+function init() {
+    // 缓存 DOM 引用
+    domOutputArea = document.getElementById('outputArea');
+    domStatusText = document.getElementById('statusText');
+    domSpotCount = document.getElementById('spotCount');
+    domEdgeCount = document.getElementById('edgeCount');
+    domSpotSelect = document.getElementById('spotSelect');
+    domDijkFrom = document.getElementById('dijkFrom');
+    domDijkTo = document.getElementById('dijkTo');
+    domDijkstraCard = document.getElementById('dijkstraCard');
+    domDijkResult = document.getElementById('dijkResult');
+    domModalOverlay = document.getElementById('modalOverlay');
+    domModalTitle = document.getElementById('modalTitle');
+    domModalTag = document.getElementById('modalTag');
+    domModalId = document.getElementById('modalId');
+    domModalNeighbors = document.getElementById('modalNeighbors');
+    domModalDesc = document.getElementById('modalDesc');
+    domModalNearby = document.getElementById('modalNearby');
+
+    // 绑定按钮事件
+    document.getElementById('btnLoad').addEventListener('click', loadPreset);
+    document.getElementById('btnMatrix').addEventListener('click', displayMatrix);
+    document.getElementById('btnDfs').addEventListener('click', dfsTour);
+    document.getElementById('btnCycle').addEventListener('click', detectCycle);
+    document.getElementById('btnDijkstra').addEventListener('click', showDijkstraPanel);
+    document.getElementById('btnPrim').addEventListener('click', primMST);
+    document.getElementById('btnViewSpot').addEventListener('click', viewSelectedSpot);
+    document.getElementById('btnRunDijkstra').addEventListener('click', runDijkstra);
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    domModalOverlay.addEventListener('click', function(e) {
+        if (e.target === domModalOverlay) closeModal();
+    });
+
+    // Canvas
+    setupCanvas();
+
+    // Canvas 点击检测
+    canvas.addEventListener('click', function(e) {
+        if (spots.length === 0) return;
+        var rect = canvas.getBoundingClientRect();
+        var mx = e.clientX - rect.left;
+        var my = e.clientY - rect.top;
+        var scaleX = canvas.width / rect.width;
+        var scaleY = canvas.height / rect.height;
+        var cx = mx * scaleX;
+        var cy = my * scaleY;
+
+        for (var i = 0; i < nodePositions.length; i++) {
+            var dx = cx - nodePositions[i].x;
+            var dy = cy - nodePositions[i].y;
+            if (Math.sqrt(dx * dx + dy * dy) <= 26) {
+                showSpotDetail(i);
+                return;
+            }
+        }
+    });
+
+    // 初始绘制
+    resizeCanvas();
+    updateSelects();
+    setStatus('🟢 就绪 — 点击"加载预设数据"开始使用');
+
+    // 窗口大小改变时重绘
+    window.addEventListener('resize', function() {
+        resizeCanvas();
+    });
+}
+
+// 等 DOM 就绪再初始化
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
+})();
 </script>
 </body>
 </html>
