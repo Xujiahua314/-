@@ -491,7 +491,25 @@ drawGraph();
 setStatus('🟢 就绪 — 点击"加载预设数据"开始');
 
 // ==================== 占位：后续功能逐步实现 ====================
-function displayMatrix() { outputToArea('<em>该功能将在下一步实现</em>'); }
+function displayMatrix() {
+    if (spots.length === 0) { alert('请先加载数据'); return; }
+    rebuildMatrix();
+    const n = spots.length;
+    let html = '<table class="matrix-table"><thead><tr><th>景点</th>';
+    for (let i = 0; i < n; i++) html += `<th>${spots[i]}</th>`;
+    html += '</tr></thead><tbody>';
+    for (let i = 0; i < n; i++) {
+        html += `<tr><th>${spots[i]}</th>`;
+        for (let j = 0; j < n; j++) {
+            const v = adjMatrix[i][j];
+            html += `<td${v === INF ? ' class="inf"' : ''}>${v === INF ? '∞' : v}</td>`;
+        }
+        html += '</tr>';
+    }
+    html += '</tbody></table>';
+    document.getElementById('outputArea').innerHTML = html;
+    setStatus('📊 已展示邻接矩阵（∞ = ' + INF + ' = 无连通路径）');
+}
 function dfsTour() { outputToArea('<em>该功能将在下一步实现</em>'); }
 function detectCycle() { outputToArea('<em>该功能将在下一步实现</em>'); }
 function showDijkstra() { outputToArea('<em>该功能将在下一步实现</em>'); }
