@@ -510,10 +510,60 @@ function displayMatrix() {
     document.getElementById('outputArea').innerHTML = html;
     setStatus('📊 已展示邻接矩阵（∞ = ' + INF + ' = 无连通路径）');
 }
-function dfsTour() { outputToArea('<em>该功能将在下一步实现</em>'); }
-function detectCycle() { outputToArea('<em>该功能将在下一步实现</em>'); }
-function showDijkstra() { outputToArea('<em>该功能将在下一步实现</em>'); }
+function dfsTour() {
+    if (spots.length === 0) { alert('请先加载数据'); return; }
+    const visited = new Set();
+    tourPath = [];
+
+    function dfs(v) {
+        visited.add(v);
+        tourPath.push(v);
+        const neighbors = adjList.get(v) || [];
+        for (let { to } of neighbors) {
+            if (!visited.has(to)) {
+                dfs(to);
+                tourPath.push(v);
+            }
+        }
+    }
+
+    dfs(0);
+
+    // 构建高亮边
+    highlightEdges = [];
+    for (let i = 0; i < tourPath.length - 1; i++) {
+        const from = tourPath[i], to = tourPath[i + 1];
+        if (from !== to) {
+            highlightEdges.push({ from, to, color: '#457b9d' });
+        }
+    }
+    drawGraph();
+
+    const visitedCount = new Set(tourPath).size;
+    let result = 'DFS 导游线路（从 ' + spots[0] + ' 出发）：\n\n';
+    result += '遍历路径（含回溯）：\n  ' + tourPath.map(i => spots[i]).join(' → ') + '\n\n';
+    result += '覆盖景点数：' + visitedCount + ' / ' + spots.length + '\n';
+    result += '线路步数：' + tourPath.length + ' 步\n';
+
+    if (visitedCount < spots.length) {
+        result += '\n⚠️ 以下景点不可达：';
+        for (let i = 0; i < spots.length; i++) {
+            if (!visited.has(i)) result += spots[i] + '  ';
+        }
+    }
+
+    outputToArea(result);
+    setStatus('🗺️ DFS 导游线路已生成（蓝色高亮边），覆盖 ' + visitedCount + ' 个景点');
+}
+
+function showDijkstra() {
+    const card = document.getElementById('dijkstraCard');
+    card.style.display = card.style.display === 'none' ? 'block' : 'none';
+    if (card.style.display === 'block') updateSelects();
+}
+
 function runDijkstra() { outputToArea('<em>该功能将在下一步实现</em>'); }
+function detectCycle() { outputToArea('<em>该功能将在下一步实现</em>'); }
 function primMST() { outputToArea('<em>该功能将在下一步实现</em>'); }
 </script>
 </body>
