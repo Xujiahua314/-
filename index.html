@@ -664,7 +664,49 @@ function detectCycle() {
     setStatus(repeated.length > 0 ? '🔁 检测到回路（橙色高亮边）' : '✅ 未检测到回路');
 }
 
-function primMST() { outputToArea('<em>该功能将在下一步实现</em>'); }
+function primMST() {
+    if (spots.length === 0) { alert('请先加载数据'); return; }
+    const n = spots.length;
+    const visited = Array(n).fill(false);
+    const mstEdges = [];
+    let totalWeight = 0;
+
+    visited[0] = true;
+    for (let k = 0; k < n - 1; k++) {
+        let minEdge = null, minWeight = INF;
+        for (let u = 0; u < n; u++) {
+            if (!visited[u]) continue;
+            for (let { to, weight } of (adjList.get(u) || [])) {
+                if (!visited[to] && weight < minWeight) {
+                    minWeight = weight;
+                    minEdge = { from: u, to, weight };
+                }
+            }
+        }
+        if (!minEdge) break;
+        mstEdges.push(minEdge);
+        totalWeight += minEdge.weight;
+        visited[minEdge.to] = true;
+    }
+
+    if (mstEdges.length < n - 1) {
+        outputToArea('⚠️ 图不连通，无法生成完整的最小生成树。\n已生成 ' + mstEdges.length + ' 条边。');
+        setStatus('⚠️ 图不连通');
+    } else {
+        let result = '🌳 Prim 最小生成树（扩展功能）\n\n';
+        result += 'MST 边列表：\n';
+        for (let e of mstEdges) {
+            result += '  ' + spots[e.from] + ' — ' + spots[e.to] + '  距离：' + e.weight + '\n';
+        }
+        result += '\n最小生成树总权重：' + totalWeight + '\n';
+        result += '\n💡 最小生成树可用于景区道路建设优化，以最少道路总长度连通所有景点。';
+        outputToArea(result);
+        setStatus('🌳 最小生成树总权重：' + totalWeight + '（绿色高亮边）');
+    }
+
+    highlightEdges = mstEdges.map(e => ({ from: e.from, to: e.to, color: '#2d6a4f' }));
+    drawGraph();
+}
 </script>
 </body>
 </html>
