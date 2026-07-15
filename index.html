@@ -1092,37 +1092,43 @@ function displayMatrix() {
     setStatus('📊 已展示邻接矩阵（∞ = ' + INF + ' = 无连通路径）');
 }
 
-// ==================== 功能：DFS 导游线路（修改后：无回溯） ====================
+// ==================== 功能：DFS 导游线路 ====================
 function dfsTour() {
     if (spots.length === 0) { showToast('请先加载数据', true); return; }
 
     var visited = {};
     tourPath = [];
-    var dfsTreeEdges = [];
 
-    function dfs(v, parent) {
+    function dfs(v) {
         visited[v] = true;
         tourPath.push(v);
-        if (parent !== undefined) {
-            dfsTreeEdges.push({ from: parent, to: v });
-        }
         var neighbors = adjList.get(v) || [];
-        // 按边的权重排序，使遍历顺序稳定
-        var sortedNeighbors = neighbors.slice().sort(function(a, b) { return a.weight - b.weight; });
-        sortedNeighbors.forEach(function(e) {
+        neighbors.forEach(function(e) {
             if (!visited[e.to]) {
-                dfs(e.to, v);
-                // 不再记录回溯 —— 导游从大门出发，走到最后一个景点结束，不走回头路
+                dfs(e.to);
+                // 回溯记录：走到死胡同后原路返回，再去下一个分支
+                // 这是 DFS 深度优先遍历的完整过程
+                tourPath.push(v);
             }
         });
     }
 
     dfs(0);  // 从大门（索引 0）出发
 
-    // 高亮 DFS 树的边（蓝色）
-    highlightEdges = dfsTreeEdges.map(function(e) {
-        return { from: e.from, to: e.to, color: '#457b9d' };
-    });
+    // 去掉末尾走回大门的回头路 —— 导游不需要走回入口
+    var startIdx = 0;
+    while (tourPath.length > 1 && tourPath[tourPath.length - 1] === startIdx) {
+        tourPath.pop();
+    }
+
+    // 高亮实际走过的边（含回溯）
+    highlightEdges = [];
+    for (var i = 0; i < tourPath.length - 1; i++) {
+        var from = tourPath[i], to = tourPath[i + 1];
+        if (from !== to) {
+            highlightEdges.push({ from: from, to: to, color: '#457b9d' });
+        }
+    }
 
     drawGraph();
 
@@ -1131,11 +1137,11 @@ function dfsTour() {
     var visitedCount = Object.keys(uniqueVisited).length;
 
     var result = '<strong>🗺 DFS 导游线路（从 ' + spots[0] + ' 出发）</strong><br><br>';
-    result += '游览顺序（每个景点仅访问一次，无需走回头路）：<br>  <span class="pat">';
+    result += '导游在景区中按深度优先遍历的行走路径：<br>  <span class="pat">';
     result += tourPath.map(function(i) { return spots[i]; }).join(' → ');
     result += '</span><br><br>';
     result += '覆盖景点数：<strong>' + visitedCount + ' / ' + spots.length + '</strong><br>';
-    result += '线路步数：' + tourPath.length + ' 步（共访问 ' + tourPath.length + ' 个景点）<br>';
+    result += '线路步数（含分支间回头路）：' + tourPath.length + ' 步<br>';
 
     if (visitedCount < spots.length) {
         result += '<br><span class="hili">⚠️ 以下景点不可达：</span>';
@@ -1144,12 +1150,11 @@ function dfsTour() {
         }
     } else {
         result += '<br>✅ 所有景点均已覆盖。<br>';
-        result += '💡 导游线路从 <strong>' + spots[0] + '</strong> 开始，';
-        result += '到 <strong>' + spots[tourPath[tourPath.length - 1]] + '</strong> 结束，无需返回。';
+        result += '💡 导游从 <strong>' + spots[0] + '</strong> 出发，游览至 <strong>' + spots[tourPath[tourPath.length - 1]] + '</strong> 结束。';
     }
 
     domOutputArea.innerHTML = result;
-    setStatus('🗺️ DFS 导游线路已生成（蓝色高亮边），从 ' + spots[0] + ' 到 ' + spots[tourPath[tourPath.length - 1]]);
+    setStatus('🗺️ DFS 导游线路已生成（蓝色高亮边），路径长度 ' + tourPath.length + ' 步');
 }
 
 // ==================== 功能：回路检测 ====================
@@ -1186,10 +1191,9 @@ function detectCycle() {
         setStatus('🔁 检测到回路（橙色高亮边）');
     } else {
         result += '✅ <strong>导游线路中未检测到回路。</strong><br><br>';
-        result += '当前线路采用"不走回头路"模式，<br>每个景点在导游线路中仅访问 <strong>1</strong> 次。<br>';
-        result += '导游从 ' + spots[0] + ' 出发，游览全部可达景点后结束。';
+        result += '所有景点在导游线路中均只被访问一次，图中无环路。';
         highlightEdges = [];
-        setStatus('✅ 未检测到回路（线路无重复访问）');
+        setStatus('✅ 未检测到回路');
     }
     drawGraph();
     domOutputArea.innerHTML = result;
