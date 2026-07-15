@@ -422,6 +422,13 @@
         <!-- ========== 游客端面板 ========== -->
         <div id="visitorPanel" style="display:none;">
             <div class="card">
+                <h3><span class="icon">&#x1F4E5;</span> 景区数据</h3>
+                <button class="btn primary" id="btnLoadVisitor" style="width:100%;">
+                    &#x1F504; 加载预设数据（8景点9条边）
+                </button>
+            </div>
+
+            <div class="card">
                 <h3><span class="icon">&#x1F5FA;</span> 导游游览</h3>
                 <div class="btn-group">
                     <button class="btn primary" id="btnDfs">&#x1F5FA; DFS 导游线路</button>
@@ -1090,11 +1097,17 @@ function dfsTour() {
 
     dfs(0);  // 从大门（索引 0）出发
 
-    // 去掉末尾走回大门的回头路 —— 导游不需要走回入口
-    var startIdx = 0;
-    while (tourPath.length > 1 && tourPath[tourPath.length - 1] === startIdx) {
-        tourPath.pop();
+    // 导游路线截止到最后一个新访问的景点，后面不再走回头路
+    // 找到最后一个"首次出现"的景点位置
+    var firstSeen = {};
+    var lastNewIdx = 0;
+    for (var i = 0; i < tourPath.length; i++) {
+        if (!firstSeen[tourPath[i]]) {
+            firstSeen[tourPath[i]] = true;
+            lastNewIdx = i;
+        }
     }
+    tourPath = tourPath.slice(0, lastNewIdx + 1);
 
     // 高亮实际走过的边（含回溯）
     highlightEdges = [];
@@ -1362,6 +1375,7 @@ function init() {
 
     // 管理端按钮
     document.getElementById('btnLoad').addEventListener('click', loadPreset);
+    document.getElementById('btnLoadVisitor').addEventListener('click', loadPreset);
     document.getElementById('btnAddSpot').addEventListener('click', adminAddSpot);
     document.getElementById('btnDelSpot').addEventListener('click', adminDeleteSpot);
     document.getElementById('btnAddEdge').addEventListener('click', adminAddEdge);

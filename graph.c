@@ -209,9 +209,17 @@ void dfsTour(Graph *g, int start, int *tourPath, int *pathLen) {
 
     dfsRecursive(g, start, visited, -1, tourPath, pathLen);
 
-    /* 去掉末尾走回起始景点的回头路 */
-    while (*pathLen > 1 && tourPath[*pathLen - 1] == start) {
-        (*pathLen)--;
+    /* 导游路线截止到最后一个新访问的景点，后面不再走回头路 */
+    {
+        int firstSeen[MAX_SPOTS] = {0};
+        int lastNewIdx = 0;
+        for (int i = 0; i < *pathLen; i++) {
+            if (!firstSeen[tourPath[i]]) {
+                firstSeen[tourPath[i]] = 1;
+                lastNewIdx = i;
+            }
+        }
+        *pathLen = lastNewIdx + 1;
     }
 
     /* 输出结果 */
