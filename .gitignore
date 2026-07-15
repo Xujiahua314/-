@@ -9,7 +9,10 @@ Thumbs.db
 # 编译产物
 *.exe
 
-# Office 临时文件
+# Office 文件（不上传二进制文档）
 ~$*.docx
 ~$*.pptx
 ~$*.xlsx
+*.docx
+*.pptx
+*.xlsx
