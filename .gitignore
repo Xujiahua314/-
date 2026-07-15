@@ -5,3 +5,11 @@
 # 系统文件
 .DS_Store
 Thumbs.db
+
+# 编译产物
+*.exe
+
+# Office 临时文件
+~$*.docx
+~$*.pptx
+~$*.xlsx

@@ -201,23 +201,46 @@ static void printTitle(void) {
     printf("  ╚══════════════════════════════════╝\n");
 }
 
-static void printMenu(void) {
+static void printMainMenu(void) {
     printf("\n");
     printf("  ┌─────────────────────────────────┐\n");
     printf("  │         主  菜  单              │\n");
     printf("  ├────┬────────────────────────────┤\n");
-    printf("  │ 0  │ 加载预设数据（8景点9条边） │\n");
-    printf("  │ 1  │ 手动添加景点               │\n");
-    printf("  │ 2  │ 手动添加路径（边）         │\n");
-    printf("  │ 3  │ 展示邻接矩阵               │\n");
-    printf("  │ 4  │ DFS 导游线路图             │\n");
-    printf("  │ 5  │ 回路检测                   │\n");
-    printf("  │ 6  │ 最短路径查询（Dijkstra）   │\n");
-    printf("  │ 7  │ 最小生成树（Prim·扩展）    │\n");
-    printf("  │ 8  │ 显示景点 & 边列表          │\n");
-    printf("  │ 9  │ 退出系统                   │\n");
+    printf("  │ 1  │ 🏛 管理端（录入维护数据）  │\n");
+    printf("  │ 2  │ 🏔 游客端（游览查询功能）  │\n");
+    printf("  │ 0  │ 退出系统                   │\n");
     printf("  └────┴────────────────────────────┘\n");
-    printf("\n  当前景点数：%d | 请选择操作 [0-9]：", g.spotCount);
+    printf("\n  当前景点数：%d | 请选择操作 [0-2]：", g.spotCount);
+}
+
+static void printAdminMenu(void) {
+    printf("\n");
+    printf("  ┌─────────────────────────────────┐\n");
+    printf("  │      管理端 — 数据录入与维护   │\n");
+    printf("  ├────┬────────────────────────────┤\n");
+    printf("  │ 1  │ 加载预设数据（8景点9条边） │\n");
+    printf("  │ 2  │ 手动添加景点               │\n");
+    printf("  │ 3  │ 手动添加路径（边）         │\n");
+    printf("  │ 4  │ 展示邻接矩阵               │\n");
+    printf("  │ 5  │ 显示景点 & 边列表          │\n");
+    printf("  │ 0  │ 返回主菜单                 │\n");
+    printf("  └────┴────────────────────────────┘\n");
+    printf("\n  当前景点数：%d | 请选择操作 [0-5]：", g.spotCount);
+}
+
+static void printVisitorMenu(void) {
+    printf("\n");
+    printf("  ┌─────────────────────────────────┐\n");
+    printf("  │      游客端 — 游览与路径查询   │\n");
+    printf("  ├────┬────────────────────────────┤\n");
+    printf("  │ 1  │ DFS 导游线路图             │\n");
+    printf("  │ 2  │ 回路检测                   │\n");
+    printf("  │ 3  │ 最短路径查询（Dijkstra）   │\n");
+    printf("  │ 4  │ 最小生成树（Prim·扩展）    │\n");
+    printf("  │ 5  │ 显示景点 & 边列表          │\n");
+    printf("  │ 0  │ 返回主菜单                 │\n");
+    printf("  └────┴────────────────────────────┘\n");
+    printf("\n  当前景点数：%d | 请选择操作 [0-5]：", g.spotCount);
 }
 
 /* ================================================================
@@ -225,7 +248,7 @@ static void printMenu(void) {
  * ================================================================ */
 
 int main(void) {
-    int choice;
+    int mainChoice, subChoice;
 
     /* 初始化 */
     initGraph(&g);
@@ -244,55 +267,106 @@ int main(void) {
     do {
         clearScreen();
         printTitle();
-        printMenu();
-        choice = readInt();
+        printMainMenu();
+        mainChoice = readInt();
 
-        clearScreen();
-        printTitle();
-
-        switch (choice) {
-        case 0:
-            printf("\n  重新加载预设数据...\n");
-            loadPreset(&g);
-            tourGenerated = 0;
-            break;
-        case 1:
-            menuAddSpot();
-            break;
-        case 2:
-            menuAddEdge();
-            break;
-        case 3:
-            menuDisplayMatrix();
-            break;
-        case 4:
-            menuDFSTour();
-            break;
-        case 5:
-            menuDetectCycle();
-            break;
-        case 6:
-            menuDijkstra();
-            break;
-        case 7:
-            menuPrimMST();
-            break;
-        case 8:
-            menuListSpots();
-            break;
-        case 9:
+        if (mainChoice == 0) {
             printf("\n  感谢使用景区路径规划系统！再见～\n\n");
-            break;
-        default:
-            printf("\n  ⚠️  无效选项，请重新选择 [0-9]。\n");
             break;
         }
 
-        if (choice != 9) {
+        if (mainChoice == 1) {
+            /* ======== 管理端子菜单 ======== */
+            do {
+                clearScreen();
+                printTitle();
+                printf("\n  🏛 当前模式：管理端\n");
+                printAdminMenu();
+                subChoice = readInt();
+
+                clearScreen();
+                printTitle();
+                printf("\n  🏛 当前模式：管理端\n");
+
+                switch (subChoice) {
+                case 1:
+                    printf("\n  重新加载预设数据...\n");
+                    loadPreset(&g);
+                    tourGenerated = 0;
+                    break;
+                case 2:
+                    menuAddSpot();
+                    break;
+                case 3:
+                    menuAddEdge();
+                    break;
+                case 4:
+                    menuDisplayMatrix();
+                    break;
+                case 5:
+                    menuListSpots();
+                    break;
+                case 0:
+                    break;  /* 返回主菜单 */
+                default:
+                    printf("\n  ⚠️  无效选项，请重新选择 [0-5]。\n");
+                    break;
+                }
+
+                if (subChoice != 0) {
+                    pauseScreen();
+                }
+
+            } while (subChoice != 0);
+
+        } else if (mainChoice == 2) {
+            /* ======== 游客端子菜单 ======== */
+            do {
+                clearScreen();
+                printTitle();
+                printf("\n  🏔 当前模式：游客端\n");
+                printVisitorMenu();
+                subChoice = readInt();
+
+                clearScreen();
+                printTitle();
+                printf("\n  🏔 当前模式：游客端\n");
+
+                switch (subChoice) {
+                case 1:
+                    menuDFSTour();
+                    break;
+                case 2:
+                    menuDetectCycle();
+                    break;
+                case 3:
+                    menuDijkstra();
+                    break;
+                case 4:
+                    menuPrimMST();
+                    break;
+                case 5:
+                    menuListSpots();
+                    break;
+                case 0:
+                    break;  /* 返回主菜单 */
+                default:
+                    printf("\n  ⚠️  无效选项，请重新选择 [0-5]。\n");
+                    break;
+                }
+
+                if (subChoice != 0) {
+                    pauseScreen();
+                }
+
+            } while (subChoice != 0);
+
+        } else {
+            printf("\n  ⚠️  无效选项，请重新选择 [0-2]。\n");
             pauseScreen();
         }
 
-    } while (choice != 9);
+    } while (1);
 
     /* 释放邻接表内存 */
     for (int i = 0; i < g.spotCount; i++) {

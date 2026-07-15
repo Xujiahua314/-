@@ -185,8 +185,7 @@ static void dfsRecursive(Graph *g, int v, int *visited, int prev,
     while (p) {
         if (!visited[p->to]) {
             dfsRecursive(g, p->to, visited, v, tourPath, pathLen);
-            /* 回溯时记录返回的节点 */
-            tourPath[(*pathLen)++] = v;
+            /* 导游从大门出发，走到最后一个景点结束，不走回头路 */
         }
         p = p->next;
     }
@@ -214,7 +213,7 @@ void dfsTour(Graph *g, int start, int *tourPath, int *pathLen) {
     printf("║      DFS 导游线路图                  ║\n");
     printf("╚══════════════════════════════════════╝\n\n");
     printf("  起始景点：%s\n\n", g->names[start]);
-    printf("  导游线路（深度优先遍历）：\n\n    ");
+    printf("  导游线路（深度优先遍历，不走回头路）：\n\n    ");
 
     for (int i = 0; i < *pathLen; i++) {
         if (i > 0) printf(" → ");
@@ -230,7 +229,9 @@ void dfsTour(Graph *g, int start, int *tourPath, int *pathLen) {
 
     printf("  ─────────────────────────────\n");
     printf("  覆盖景点数：%d / %d\n", visitedCount, g->spotCount);
-    printf("  线路步数  ：%d 步\n", *pathLen);
+    printf("  线路步数  ：%d 步（每个景点仅访问一次）\n", *pathLen);
+    printf("  💡 导游从 %s 出发，游览至 %s 结束，无需走回头路\n",
+           g->names[tourPath[0]], g->names[tourPath[*pathLen - 1]]);
     printf("\n");
 
     if (visitedCount < g->spotCount) {
@@ -297,7 +298,8 @@ void detectCycle(Graph *g, int *tourPath, int pathLen) {
 
     if (!hasCycle) {
         printf("  ✅ 导游线路中未检测到回路。\n");
-        printf("  所有景点在导游线路中均只被访问一次。\n\n");
+        printf("  当前线路采用'不走回头路'模式，\n");
+        printf("  每个景点在导游线路中仅访问一次。\n\n");
     }
 }
 

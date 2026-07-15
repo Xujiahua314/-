@@ -17,6 +17,8 @@
             --shadow: 0 2px 8px rgba(0,0,0,0.08);
             --danger: #c62828;
             --warning: #e65100;
+            --admin-bg: #fef9e7;
+            --admin-border: #f0c040;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,15 +33,52 @@
         .header {
             background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 50%, #40916c 100%);
             color: #fff;
-            padding: 14px 32px;
+            padding: 10px 32px;
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            flex-wrap: wrap;
         }
         .header .logo { font-size: 28px; }
-        .header h1 { font-size: 21px; font-weight: 600; letter-spacing: 2px; }
-        .header .subtitle { font-size: 13px; opacity: 0.85; margin-left: auto; }
+        .header h1 { font-size: 20px; font-weight: 600; letter-spacing: 2px; }
+        .header .subtitle { font-size: 12px; opacity: 0.85; margin-left: auto; }
+
+        /* 模式切换按钮 */
+        .mode-switch {
+            display: flex;
+            gap: 0;
+            margin: 0 16px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+        .mode-btn {
+            padding: 8px 20px;
+            border: 2px solid rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.85);
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: all 0.25s;
+            white-space: nowrap;
+        }
+        .mode-btn:first-child { border-radius: 8px 0 0 8px; }
+        .mode-btn:last-child { border-radius: 0 8px 8px 0; }
+        .mode-btn:hover { background: rgba(255,255,255,0.25); }
+        .mode-btn.active {
+            background: #fff;
+            color: #1b4332;
+            border-color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .mode-btn.admin-active {
+            background: #fff3cd;
+            color: #856404;
+            border-color: #ffc107;
+        }
 
         .main-container {
             display: flex;
@@ -83,7 +122,7 @@
         #mapCanvas { flex: 1; width: 100%; cursor: pointer; display: block; }
 
         .control-panel {
-            flex: 0 0 370px;
+            flex: 0 0 380px;
             display: flex;
             flex-direction: column;
             gap: 14px;
@@ -95,6 +134,10 @@
             border-radius: 8px;
             box-shadow: var(--shadow);
             padding: 15px;
+        }
+        .card.admin-card {
+            border-left: 3px solid var(--admin-border);
+            background: #fffef9;
         }
         .card h3 {
             font-size: 14px;
@@ -126,11 +169,23 @@
         .btn.primary:hover { background: var(--primary-hover); }
         .btn.accent { background: var(--accent); color: #fff; border-color: var(--accent); }
         .btn.warn { background: var(--warning); color: #fff; border-color: var(--warning); }
+        .btn.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .btn.danger:hover { background: #a50e0e; }
+        .btn.admin-btn { background: #fff3cd; color: #856404; border-color: #f0c040; }
+        .btn.admin-btn:hover { background: #ffe69c; }
+        .btn.small { padding: 4px 10px; font-size: 12px; }
 
         .input-row {
             display: flex; gap: 6px; margin-bottom: 6px; align-items: center;
         }
-        .input-row label { font-size: 12px; white-space: nowrap; min-width: 38px; color: var(--text-light); }
+        .input-row label { font-size: 12px; white-space: nowrap; min-width: 42px; color: var(--text-light); }
+        .input-row input[type="text"],
+        .input-row input[type="number"] {
+            flex: 1; padding: 6px 8px;
+            border: 1px solid var(--border); border-radius: 4px;
+            font-size: 13px; font-family: inherit;
+        }
+        .input-row input:focus { outline: none; border-color: var(--accent); }
         .input-row select {
             flex: 1; padding: 6px 8px;
             border: 1px solid var(--border); border-radius: 4px;
@@ -174,6 +229,12 @@
         .legend { display: flex; gap: 14px; align-items: center; }
         .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; }
         .legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+        /* 分界线 */
+        .divider {
+            border: none; border-top: 1px dashed var(--border);
+            margin: 10px 0;
+        }
 
         /* 景点详情弹窗 */
         .modal-overlay {
@@ -232,11 +293,24 @@
         }
         .modal-close:hover { background: #fff; }
 
+        /* 提示框 */
+        .toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: #333; color: #fff; padding: 10px 24px;
+            border-radius: 8px; font-size: 14px; z-index: 2000;
+            opacity: 0; transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+        .toast.error { background: #c62828; }
+
         @media (max-width: 900px) {
             .main-container { flex-direction: column; height: auto; }
             .canvas-panel { min-height: 380px; }
             .control-panel { flex: none; }
             .modal { width: 95vw; }
+            .header { padding: 10px 14px; }
+            .header .subtitle { display: none; }
         }
     </style>
 </head>
@@ -245,10 +319,15 @@
 <div class="header">
     <span class="logo">&#x1F3D4;</span>
     <h1>景区路径规划系统</h1>
+    <div class="mode-switch">
+        <button class="mode-btn admin-active" id="btnModeAdmin">&#x1F3DB; 管理端</button>
+        <button class="mode-btn" id="btnModeVisitor">&#x1F3D4; 游客端</button>
+    </div>
     <span class="subtitle">数据结构实训 — 许嘉华 202509604228</span>
 </div>
 
 <div class="main-container">
+    <!-- 左侧：Canvas 地图（始终可见） -->
     <div class="canvas-panel">
         <div class="canvas-header">
             <span class="dot"></span> 景区景点分布图
@@ -257,46 +336,138 @@
         <canvas id="mapCanvas"></canvas>
     </div>
 
+    <!-- 右侧：控制面板（按模式切换） -->
     <div class="control-panel">
-        <div class="card">
-            <h3><span class="icon">&#x1F39B;</span> 功能菜单</h3>
-            <div class="btn-group">
-                <button class="btn primary" id="btnLoad">&#x1F4E5; 加载预设数据</button>
-                <button class="btn" id="btnMatrix">&#x1F4CA; 展示邻接矩阵</button>
-                <button class="btn" id="btnDfs">&#x1F5FA; DFS 导游线路</button>
-                <button class="btn warn" id="btnCycle">&#x1F501; 回路检测</button>
-                <button class="btn accent" id="btnDijkstra">&#x1F4CF; 最短路径查询</button>
-                <button class="btn primary" id="btnPrim">&#x1F333; 最小生成树</button>
+
+        <!-- ========== 管理端面板 ========== -->
+        <div id="adminPanel">
+            <div class="card admin-card">
+                <h3><span class="icon">&#x1F4E5;</span> 数据加载</h3>
+                <button class="btn admin-btn" id="btnLoad" style="width:100%;">
+                    &#x1F504; 加载预设数据（12景点22条边）
+                </button>
+                <div style="font-size:11px;color:#888;margin-top:6px;">
+                    &#x26A0; 加载预设数据将覆盖当前所有数据
+                </div>
+            </div>
+
+            <div class="card admin-card">
+                <h3><span class="icon">&#x2795;</span> 添加景点</h3>
+                <div class="input-row">
+                    <input type="text" id="inputSpotName" placeholder="输入新景点名称" maxlength="30">
+                </div>
+                <button class="btn admin-btn" id="btnAddSpot" style="margin-top:6px;width:100%;">
+                    &#x2795; 添加景点
+                </button>
+            </div>
+
+            <div class="card admin-card">
+                <h3><span class="icon">&#x1F517;</span> 添加路径</h3>
+                <div class="input-row">
+                    <label>起点：</label>
+                    <select id="adminEdgeFrom"></select>
+                </div>
+                <div class="input-row">
+                    <label>终点：</label>
+                    <select id="adminEdgeTo"></select>
+                </div>
+                <div class="input-row">
+                    <label>距离：</label>
+                    <input type="number" id="inputEdgeWeight" placeholder="正整数" min="1" value="5">
+                </div>
+                <button class="btn admin-btn" id="btnAddEdge" style="margin-top:6px;width:100%;">
+                    &#x1F517; 添加路径
+                </button>
+            </div>
+
+            <div class="card admin-card">
+                <h3><span class="icon">&#x1F5D1;</span> 删除维护</h3>
+                <div class="input-row">
+                    <label>删景点：</label>
+                    <select id="adminDelSpot"></select>
+                </div>
+                <button class="btn danger small" id="btnDelSpot" style="width:100%;margin-bottom:8px;">
+                    &#x1F5D1; 删除选中景点（含关联路径）
+                </button>
+                <hr class="divider">
+                <div class="input-row">
+                    <label>起点：</label>
+                    <select id="adminDelEdgeFrom"></select>
+                </div>
+                <div class="input-row">
+                    <label>终点：</label>
+                    <select id="adminDelEdgeTo"></select>
+                </div>
+                <button class="btn danger small" id="btnDelEdge" style="width:100%;">
+                    &#x1F5D1; 删除该路径
+                </button>
+            </div>
+
+            <div class="card admin-card">
+                <h3><span class="icon">&#x1F4CA;</span> 景区分布图</h3>
+                <button class="btn admin-btn" id="btnMatrix" style="width:100%;">
+                    &#x1F4CA; 展示邻接矩阵
+                </button>
+                <button class="btn admin-btn" id="btnListData" style="width:100%;margin-top:6px;">
+                    &#x1F4CB; 查看景点与路径列表
+                </button>
+            </div>
+
+            <div class="card admin-card">
+                <h3><span class="icon">&#x1F4DD;</span> 操作日志</h3>
+                <div class="result-area" id="adminOutput"><em>管理端就绪 — 可添加/删除景点和路径</em></div>
             </div>
         </div>
 
-        <div class="card">
-            <h3><span class="icon">&#x1F50D;</span> 景点查询</h3>
-            <div class="input-row">
-                <label>选择景点：</label>
-                <select id="spotSelect">
-                    <option value="">-- 请先加载数据 --</option>
-                </select>
+        <!-- ========== 游客端面板 ========== -->
+        <div id="visitorPanel" style="display:none;">
+            <div class="card">
+                <h3><span class="icon">&#x1F5FA;</span> 导游游览</h3>
+                <div class="btn-group">
+                    <button class="btn primary" id="btnDfs">&#x1F5FA; DFS 导游线路</button>
+                    <button class="btn warn" id="btnCycle">&#x1F501; 回路检测</button>
+                </div>
+                <div style="font-size:11px;color:#888;margin-top:6px;">
+                    &#x1F4A1; DFS线路从大门出发，覆盖所有可达景点，终点为最后一个景点
+                </div>
             </div>
-            <button class="btn primary" id="btnViewSpot" style="margin-top:6px;width:100%;">
-                &#x1F4D6; 查看景点详情
-            </button>
-            <div style="font-size:11px;color:#999;margin-top:6px;">
-                &#x1F4A1; 也可在左侧分布图中直接点击景点圆形图标
+
+            <div class="card">
+                <h3><span class="icon">&#x1F4CF;</span> 路径规划</h3>
+                <div class="btn-group">
+                    <button class="btn accent" id="btnDijkstra">&#x1F4CF; 最短路径查询</button>
+                    <button class="btn primary" id="btnPrim">&#x1F333; 最小生成树</button>
+                </div>
             </div>
-        </div>
 
-        <div class="card" id="dijkstraCard" style="display:none;">
-            <h3><span class="icon">&#x1F4CF;</span> 最短路径查询（Dijkstra）</h3>
-            <div class="input-row"><label>起点：</label><select id="dijkFrom"></select></div>
-            <div class="input-row"><label>终点：</label><select id="dijkTo"></select></div>
-            <button class="btn accent" id="btnRunDijkstra">&#x1F50D; 查询最短路径</button>
-            <div id="dijkResult" class="result-area" style="margin-top:8px; display:none;"></div>
-        </div>
+            <div class="card" id="dijkstraCard" style="display:none;">
+                <h3><span class="icon">&#x1F50D;</span> 最短路径查询（Dijkstra）</h3>
+                <div class="input-row"><label>起点：</label><select id="dijkFrom"></select></div>
+                <div class="input-row"><label>终点：</label><select id="dijkTo"></select></div>
+                <button class="btn accent" id="btnRunDijkstra" style="width:100%;">&#x1F50D; 查询最短路径</button>
+                <div id="dijkResult" class="result-area" style="margin-top:8px; display:none;"></div>
+            </div>
 
-        <div class="card">
-            <h3><span class="icon">&#x1F4CB;</span> 输出结果</h3>
-            <div class="result-area" id="outputArea"><em>点击"加载预设数据"开始使用系统</em></div>
+            <div class="card">
+                <h3><span class="icon">&#x1F50D;</span> 景点查询</h3>
+                <div class="input-row">
+                    <label>选择景点：</label>
+                    <select id="spotSelect">
+                        <option value="">-- 请先加载数据 --</option>
+                    </select>
+                </div>
+                <button class="btn primary" id="btnViewSpot" style="margin-top:6px;width:100%;">
+                    &#x1F4D6; 查看景点详情
+                </button>
+                <div style="font-size:11px;color:#999;margin-top:6px;">
+                    &#x1F4A1; 也可在左侧分布图中直接点击景点圆形图标
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><span class="icon">&#x1F4CB;</span> 输出结果</h3>
+                <div class="result-area" id="outputArea"><em>点击"DFS 导游线路"开始游览</em></div>
+            </div>
         </div>
     </div>
 </div>
@@ -318,11 +489,15 @@
     </div>
 </div>
 
+<!-- Toast 提示 -->
+<div class="toast" id="toast"></div>
+
 <!-- 底部状态栏 -->
 <div class="status-bar">
     <span id="statusText">&#x1F7E2; 就绪</span>
     <span style="margin-left:auto;">景点数：<strong id="spotCount">0</strong></span>
     <span>边数：<strong id="edgeCount">0</strong></span>
+    <span id="modeLabel" style="color:#856404;font-weight:600;">&#x1F3DB; 管理端</span>
     <div class="legend">
         <span class="legend-item"><span class="legend-dot" style="background:#2d6a4f;"></span> 景点</span>
         <span class="legend-item"><span class="legend-dot" style="background:#e63946;"></span> 最短路径</span>
@@ -344,23 +519,26 @@ var adjList = new Map();
 var adjMatrix = [];
 var tourPath = [];
 var highlightEdges = [];
+var currentMode = 'admin';  // 'admin' | 'visitor'
 
-// ==================== DOM 引用（等 DOM 就绪后再绑定） ====================
+// ==================== DOM 引用 ====================
 var canvas, ctx, nodePositions = [];
-var domOutputArea, domStatusText, domSpotCount, domEdgeCount;
+var domOutputArea, domAdminOutput, domStatusText, domSpotCount, domEdgeCount, domModeLabel;
 var domSpotSelect, domDijkFrom, domDijkTo;
 var domDijkstraCard, domDijkResult;
 var domModalOverlay, domModalTitle, domModalTag, domModalId, domModalNeighbors, domModalDesc, domModalNearby;
+var domAdminPanel, domVisitorPanel;
+var domToast;
 
 // ==================== 景点介绍数据 ====================
 var spotInfoMap = {
     "大门": {
         tag: "🏛 入口",
-        desc: "景区正大门，始建于明代，是一座气势恢宏的三开间石牌坊。门楥上镬刻着清代书法家题写的“翠微胜境”四个大字，笔力遒劲，金粉犹存。门前左右各立一尊石狮，威武庄严，守护着这片山水的千年灵韵。大门两侧古松参天，每逢清晨雾气缭绕之时，游人步入其中，恍若穿越时光之门，进入世外桃源。"
+        desc: "景区正大门，始建于明代，是一座气势恢宏的三开间石牌坊。门楥上镬刻着清代书法家题写的"翠微胜境"四个大字，笔力遒劲，金粉犹存。门前左右各立一尊石狮，威武庄严，守护着这片山水的千年灵韵。大门两侧古松参天，每逢清晨雾气缭绕之时，游人步入其中，恍若穿越时光之门，进入世外桃源。"
     },
     "碧玉潭": {
         tag: "💧 水景",
-        desc: "碧玉潭因潭水碧绿如玉而得名，是景区内最负盛名的水景。潭深约三丈，水质清澈见底，水下卵石历历可数。相传唐代诗人李白游历至此，见潭水澄澈如镜、倒映青山翠竹，不禁赞叹“此水只应天上有”。潭边建有凉亭一座，供游人休憩赏景。夏日荷花开遍潭面，清香四溢；秋日枫叶倒映水中，红绿交织，美不胜收。"
+        desc: "碧玉潭因潭水碧绿如玉而得名，是景区内最负盛名的水景。潭深约三丈，水质清澈见底，水下卵石历历可数。相传唐代诗人李白游历至此，见潭水澄澈如镜、倒映青山翠竹，不禁赞叹"此水只应天上有"。潭边建有凉亭一座，供游人休憩赏景。夏日荷花开遍潭面，清香四溢；秋日枫叶倒映水中，红绿交织，美不胜收。"
     },
     "红叶林": {
         tag: "🍁 秋色",
@@ -368,19 +546,19 @@ var spotInfoMap = {
     },
     "赏花园": {
         tag: "🌸 花卉",
-        desc: "赏花园是一座典型的江南园林式花园，占地约二十亩。园中按季节分片种植了牡丹、芍药、菊花、梅花等传统名花，确保四季有花可赏。春季牡丹盛开时最为热闹，姣紫嫣红、争奇斗艳，吸引无数游客驻足拍照。园中还有一座小巧精致的假山和曲水流觞的景观小品，充满了文人雅趣。每年四月举办的“百花节”是景区最盛大的活动之一。"
+        desc: "赏花园是一座典型的江南园林式花园，占地约二十亩。园中按季节分片种植了牡丹、芍药、菊花、梅花等传统名花，确保四季有花可赏。春季牡丹盛开时最为热闹，姣紫嫣红、争奇斗艳，吸引无数游客驻足拍照。园中还有一座小巧精致的假山和曲水流觞的景观小品，充满了文人雅趣。每年四月举办的"百花节"是景区最盛大的活动之一。"
     },
     "飞云石": {
         tag: "🪨 奇石",
-        desc: "飞云石是一块高达十余米的巨型花岗岩，因其形状奇特、宛如一朵凝固的飞云而得名。岩石表面布满了千百年来风雨侵蚀形成的纹理，远观如行云流水，近看似龙鳞虎斑。地质学家考证，此石形成于约两亿年前的中生代，是地壳运动的产物。石顶有一小平台，胆大的游客可攀登至顶，俯瞰整个景区的壮丽景色。当地流传着“摸飞云石、好运即来”的说法，岩石下部已被游人摸得光滑发亮。"
+        desc: "飞云石是一块高达十余米的巨型花岗岩，因其形状奇特、宛如一朵凝固的飞云而得名。岩石表面布满了千百年来风雨侵蚀形成的纹理，远观如行云流水，近看似龙鳞虎斑。地质学家考证，此石形成于约两亿年前的中生代，是地壳运动的产物。石顶有一小平台，胆大的游客可攀登至顶，俯瞰整个景区的壮丽景色。当地流传着"摸飞云石、好运即来"的说法，岩石下部已被游人摸得光滑发亮。"
     },
     "九曲桥": {
         tag: "🌉 古桥",
-        desc: "九曲桥是一座横跨碧玉潭的古典石拱桥，全长约五十米，桥身九折九曲，寓意“九曲十八弯，步步高升”。桥面铺设青石板，两侧有精致的石雕栏杆，栏板上雕刻着梅兰竹菊和祥云瑞兽图案。据说此桥由清代一位告老还乡的工部侍郎捐资修建，桥成之日有九只白鹤盘旋其上，被视为祥瑞之兆。漫步桥上，移步换景，每一个转角都能看到不同的湖光山色。"
+        desc: "九曲桥是一座横跨碧玉潭的古典石拱桥，全长约五十米，桥身九折九曲，寓意"九曲十八弯，步步高升"。桥面铺设青石板，两侧有精致的石雕栏杆，栏板上雕刻着梅兰竹菊和祥云瑞兽图案。据说此桥由清代一位告老还乡的工部侍郎捐资修建，桥成之日有九只白鹤盘旋其上，被视为祥瑞之兆。漫步桥上，移步换景，每一个转角都能看到不同的湖光山色。"
     },
     "白虎岩": {
         tag: "🐯 奇石",
-        desc: "白虎岩因山体岩石呈白色，且形似一只匍伎欲扑的猛虎而得名。岩石主体为白色石英岩，在阳光照射下银光闪闪，与周围的苍翠树林形成鲜明对比。虎头部位面向西方，恰合传统文化中“白虎”为西方神兽的说法，被当地人视为镇山灵石。岩下有天然形成的岩洞，洞内钟乳石千姿百态，夏季洞内凉爽如秋，是避暑纳凉的好去处。每年端午，当地百姓有在此舞龙祈福的习俗。"
+        desc: "白虎岩因山体岩石呈白色，且形似一只匍伎欲扑的猛虎而得名。岩石主体为白色石英岩，在阳光照射下银光闪闪，与周围的苍翠树林形成鲜明对比。虎头部位面向西方，恰合传统文化中"白虎"为西方神兽的说法，被当地人视为镇山灵石。岩下有天然形成的岩洞，洞内钟乳石千姿百态，夏季洞内凉爽如秋，是避暑纳凉的好去处。每年端午，当地百姓有在此舞龙祈福的习俗。"
     },
     "观月阁": {
         tag: "🏯 楼阁",
@@ -403,6 +581,17 @@ var spotInfoMap = {
         desc: "望湖台位于景区东南角的高地上，是观赏山下翠湖全景的最佳位置。台面由巨大的天然岩石平整而成，面积约百余平方米，可同时容纳上百人观景。台下翠湖如镜，四周群山环抱，日出之时金光洒满湖面，日落之际晚霞倒映水中，景色壮丽无比。台上设有固定式观景望远镜，可将远处层峦叠嶂尽收眼底。每年七夕，不少情侣专程来此欣赏「双星映湖」的奇景。"
     }
 };
+
+// ==================== Toast 提示 ====================
+function showToast(msg, isError) {
+    if (!domToast) return;
+    domToast.textContent = msg;
+    domToast.className = 'toast' + (isError ? ' error' : '') + ' show';
+    clearTimeout(domToast._timeout);
+    domToast._timeout = setTimeout(function() {
+        domToast.className = 'toast';
+    }, 2000);
+}
 
 // ==================== Canvas 初始化 ====================
 function setupCanvas() {
@@ -439,9 +628,16 @@ function rebuildMatrix() {
     });
 }
 
+function getEdgeCount() {
+    var ec = 0;
+    adjList.forEach(function(edges) { ec += edges.length; });
+    return Math.floor(ec / 2);
+}
+
 function updateSelects() {
-    var sels = ['dijkFrom', 'dijkTo', 'spotSelect'];
-    sels.forEach(function(id) {
+    // 游客端下拉
+    var visitorSels = ['spotSelect', 'dijkFrom', 'dijkTo'];
+    visitorSels.forEach(function(id) {
         var sel = document.getElementById(id);
         if (!sel) return;
         var v = sel.value;
@@ -453,31 +649,192 @@ function updateSelects() {
         }
         if (v !== '' && parseInt(v) < spots.length) sel.value = v;
     });
+
+    // 管理端下拉
+    updateAdminSelects();
+
     domSpotCount.textContent = spots.length;
-    var ec = 0;
-    adjList.forEach(function(edges) { ec += edges.length; });
-    domEdgeCount.textContent = Math.floor(ec / 2);
+    domEdgeCount.textContent = getEdgeCount();
+}
+
+function updateAdminSelects() {
+    var spotSels = ['adminEdgeFrom', 'adminEdgeTo', 'adminDelSpot', 'adminDelEdgeFrom', 'adminDelEdgeTo'];
+    spotSels.forEach(function(id) {
+        var sel = document.getElementById(id);
+        if (!sel) return;
+        var v = sel.value;
+        sel.innerHTML = spots.map(function(s, i) { return '<option value="' + i + '">[' + i + '] ' + s + '</option>'; }).join('');
+        if (v !== '' && parseInt(v) < spots.length) sel.value = v;
+    });
+}
+
+// ==================== 管理端：添加/删除景点和路径 ====================
+function adminAddSpot() {
+    var nameInput = document.getElementById('inputSpotName');
+    var name = nameInput.value.trim();
+    if (!name) { showToast('请输入景点名称', true); return; }
+    if (spots.indexOf(name) !== -1) { showToast('景点 "' + name + '" 已存在', true); return; }
+
+    spots.push(name);
+    adjList.set(spots.length - 1, []);
+
+    rebuildMatrix();
+    updateSelects();
+    drawGraph();
+
+    nameInput.value = '';
+    domAdminOutput.innerHTML = '✅ 已添加景点：<strong>' + name + '</strong>（编号：' + (spots.length - 1) + '）<br>' + domAdminOutput.innerHTML;
+    setStatus('✅ 已添加景点：' + name);
+    showToast('已添加景点：' + name);
+}
+
+function adminDeleteSpot() {
+    var idx = parseInt(document.getElementById('adminDelSpot').value);
+    if (isNaN(idx)) { showToast('请选择要删除的景点', true); return; }
+    if (spots.length <= 1) { showToast('至少保留一个景点', true); return; }
+
+    var name = spots[idx];
+
+    // 删除景点并重建邻接表（因为索引会变化）
+    spots.splice(idx, 1);
+
+    var newAdjList = new Map();
+    for (var i = 0; i < spots.length; i++) {
+        newAdjList.set(i, []);
+    }
+
+    adjList.forEach(function(edges, from) {
+        from = parseInt(from);
+        if (from === idx) return;  // 跳过已删除的景点
+        edges.forEach(function(e) {
+            if (e.to === idx) return;  // 跳过指向已删除景点的边
+            var newFrom = from > idx ? from - 1 : from;
+            var newTo = e.to > idx ? e.to - 1 : e.to;
+            // 检查重复
+            var existing = newAdjList.get(newFrom);
+            var isDup = false;
+            for (var k = 0; k < existing.length; k++) {
+                if (existing[k].to === newTo) { isDup = true; break; }
+            }
+            if (!isDup) {
+                existing.push({ to: newTo, weight: e.weight });
+            }
+        });
+    });
+
+    adjList = newAdjList;
+    tourPath = [];
+    highlightEdges = [];
+
+    rebuildMatrix();
+    updateSelects();
+    drawGraph();
+
+    domAdminOutput.innerHTML = '🗑 已删除景点：<strong>' + name + '</strong>（原编号：' + idx + '），关联路径已清理<br>' + domAdminOutput.innerHTML;
+    setStatus('🗑 已删除景点：' + name);
+    showToast('已删除景点：' + name);
+}
+
+function adminAddEdge() {
+    if (spots.length < 2) { showToast('至少需要 2 个景点', true); return; }
+
+    var from = parseInt(document.getElementById('adminEdgeFrom').value);
+    var to = parseInt(document.getElementById('adminEdgeTo').value);
+    var weight = parseInt(document.getElementById('inputEdgeWeight').value);
+
+    if (isNaN(from) || isNaN(to)) { showToast('请选择起点和终点', true); return; }
+    if (from === to) { showToast('不允许添加自环边', true); return; }
+    if (isNaN(weight) || weight <= 0) { showToast('距离必须为正整数', true); return; }
+
+    // 检查是否已存在
+    var edges = adjList.get(from) || [];
+    for (var i = 0; i < edges.length; i++) {
+        if (edges[i].to === to) {
+            showToast('路径 "' + spots[from] + '" — "' + spots[to] + '" 已存在', true);
+            return;
+        }
+    }
+
+    adjList.get(from).push({ to: to, weight: weight });
+    adjList.get(to).push({ to: from, weight: weight });
+
+    rebuildMatrix();
+    updateSelects();
+    drawGraph();
+
+    domAdminOutput.innerHTML = '✅ 已添加路径：<strong>' + spots[from] + '</strong> ↔ <strong>' + spots[to] + '</strong>（距离：' + weight + '）<br>' + domAdminOutput.innerHTML;
+    setStatus('✅ 已添加路径：' + spots[from] + ' ↔ ' + spots[to]);
+    showToast('已添加路径');
+}
+
+function adminDeleteEdge() {
+    if (spots.length < 2) { showToast('至少需要 2 个景点', true); return; }
+
+    var from = parseInt(document.getElementById('adminDelEdgeFrom').value);
+    var to = parseInt(document.getElementById('adminDelEdgeTo').value);
+
+    if (isNaN(from) || isNaN(to)) { showToast('请选择起点和终点', true); return; }
+    if (from === to) { showToast('无效选择', true); return; }
+
+    // 检查边是否存在
+    var edges = adjList.get(from) || [];
+    var found = false;
+    for (var i = 0; i < edges.length; i++) {
+        if (edges[i].to === to) { found = true; break; }
+    }
+    if (!found) {
+        showToast('路径 "' + spots[from] + '" — "' + spots[to] + '" 不存在', true);
+        return;
+    }
+
+    // 从两端删除
+    adjList.set(from, adjList.get(from).filter(function(e) { return e.to !== to; }));
+    adjList.set(to, adjList.get(to).filter(function(e) { return e.to !== from; }));
+
+    rebuildMatrix();
+    updateSelects();
+    drawGraph();
+
+    domAdminOutput.innerHTML = '🗑 已删除路径：<strong>' + spots[from] + '</strong> — <strong>' + spots[to] + '</strong><br>' + domAdminOutput.innerHTML;
+    setStatus('🗑 已删除路径：' + spots[from] + ' — ' + spots[to]);
+    showToast('已删除路径');
+}
+
+function adminListData() {
+    if (spots.length === 0) { showToast('暂无数据', true); return; }
+    var html = '<strong>景点列表（共 ' + spots.length + ' 个）：</strong><br>';
+    html += spots.map(function(s, i) { return '  [' + i + '] ' + s; }).join('<br>');
+    html += '<br><br><strong>路径列表（共 ' + getEdgeCount() + ' 条）：</strong><br>';
+    var edgeNum = 0;
+    var drawn = {};
+    adjList.forEach(function(edges, from) {
+        edges.forEach(function(e) {
+            var key = Math.min(from, e.to) + ',' + Math.max(from, e.to);
+            if (drawn[key]) return;
+            drawn[key] = true;
+            edgeNum++;
+            html += '  ' + edgeNum + '. ' + spots[from] + ' — ' + spots[e.to] + '  距离：' + e.weight + '<br>';
+        });
+    });
+    domAdminOutput.innerHTML = html;
+    setStatus('📋 已查看景点与路径列表');
 }
 
 // ==================== Canvas 绘制 ====================
-// 横向布局：12个景点分布在三条水平带上，从左到右铺开
-// 布局方案（从上到下三排）：
-//   上排: 红叶林(4) 飞云石(6) 观月阁(10)
-//   中排: 大门(0) 碧玉潭(2) 赏花园(5) 九曲桥(7) 白虎岩(9)
-//   下排: 游客中心(1) 竹林小径(3) 翠微亭(8) 望湖台(11)
+// 横向布局：12个景点分布在三条水平带上
 var SPOT_POSITIONS = [
-    {xPct:0.06, yPct:0.52},  // 0  大门        — 中排左
-    {xPct:0.15, yPct:0.80},  // 1  游客中心    — 下排左
-    {xPct:0.22, yPct:0.35},  // 2  碧玉潭      — 上排左
-    {xPct:0.30, yPct:0.80},  // 3  竹林小径    — 下排中左
-    {xPct:0.38, yPct:0.22},  // 4  红叶林      — 上排中左
-    {xPct:0.48, yPct:0.52},  // 5  赏花园      — 中排中
-    {xPct:0.58, yPct:0.22},  // 6  飞云石      — 上排中右
-    {xPct:0.58, yPct:0.52},  // 7  九曲桥      — 中排中右
-    {xPct:0.68, yPct:0.80},  // 8  翠微亭      — 下排中右
-    {xPct:0.78, yPct:0.52},  // 9  白虎岩      — 中排右
-    {xPct:0.88, yPct:0.22},  // 10 观月阁      — 上排右
-    {xPct:0.88, yPct:0.80}   // 11 望湖台      — 下排右
+    {xPct:0.06, yPct:0.52},  // 0  大门
+    {xPct:0.15, yPct:0.80},  // 1  游客中心
+    {xPct:0.22, yPct:0.35},  // 2  碧玉潭
+    {xPct:0.30, yPct:0.80},  // 3  竹林小径
+    {xPct:0.38, yPct:0.22},  // 4  红叶林
+    {xPct:0.48, yPct:0.52},  // 5  赏花园
+    {xPct:0.58, yPct:0.22},  // 6  飞云石
+    {xPct:0.58, yPct:0.52},  // 7  九曲桥
+    {xPct:0.68, yPct:0.80},  // 8  翠微亭
+    {xPct:0.78, yPct:0.52},  // 9  白虎岩
+    {xPct:0.88, yPct:0.22},  // 10 观月阁
+    {xPct:0.88, yPct:0.80}   // 11 望湖台
 ];
 
 function computeNodePositions() {
@@ -485,7 +842,13 @@ function computeNodePositions() {
     var w = canvas.width, h = canvas.height;
     var pos = [];
     for (var i = 0; i < n; i++) {
-        var cfg = SPOT_POSITIONS[i] || { xPct: 0.5, yPct: 0.5 };
+        var cfg = SPOT_POSITIONS[i];
+        if (!cfg) {
+            // 动态布局：超过12个的景点围绕中心排列
+            var angle = ((i - 12) / Math.max(n - 12, 1)) * 2 * Math.PI;
+            var r = Math.min(w, h) * 0.3;
+            cfg = { xPct: (0.5 + 0.28 * Math.cos(angle)), yPct: (0.5 + 0.28 * Math.sin(angle)) };
+        }
         pos.push({ x: cfg.xPct * w, y: cfg.yPct * h });
     }
     return pos;
@@ -501,7 +864,7 @@ function drawGraph() {
         ctx.fillStyle = '#aaa';
         ctx.font = '16px "Microsoft YaHei", sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('暂无景点数据，请点击"加载预设数据"', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('暂无景点数据，请切换到"管理端"加载预设数据', canvas.width / 2, canvas.height / 2);
         nodePositions = [];
         return;
     }
@@ -589,6 +952,7 @@ function drawGraph() {
 
 // ==================== 景点详情弹窗 ====================
 function showSpotDetail(index) {
+    if (index < 0 || index >= spots.length) return;
     var name = spots[index];
     var info = spotInfoMap[name] || { tag: "📍 景点", desc: "暂无详细介绍。" };
 
@@ -621,7 +985,7 @@ function showSpotDetail(index) {
 function viewSelectedSpot() {
     var sel = document.getElementById('spotSelect');
     var idx = parseInt(sel.value);
-    if (isNaN(idx)) { alert('请先选择一个景点'); return; }
+    if (isNaN(idx)) { showToast('请先选择一个景点', true); return; }
     showSpotDetail(idx);
 }
 
@@ -650,33 +1014,16 @@ function loadPreset() {
         '翠微亭','白虎岩','观月阁','望湖台'
     ];
     var presetEdges = [
-        // 入口区
-        [0,1,2],   // 大门—游客中心
-        [0,2,5],   // 大门—碧玉潭
-        [0,3,6],   // 大门—竹林小径
-        [1,2,3],   // 游客中心—碧玉潭
-        [1,3,4],   // 游客中心—竹林小径
-        // 左中区
-        [2,3,5],   // 碧玉潭—竹林小径
-        [2,5,3],   // 碧玉潭—赏花园
-        [3,4,4],   // 竹林小径—红叶林
-        // 中部核心区
-        [4,5,4],   // 红叶林—赏花园
-        [4,6,6],   // 红叶林—飞云石
-        [4,7,7],   // 红叶林—九曲桥
-        [4,8,5],   // 红叶林—翠微亭
-        [5,6,2],   // 赏花园—飞云石
-        [5,7,5],   // 赏花园—九曲桥
-        // 右上区
-        [6,7,7],   // 飞云石—九曲桥
-        [6,8,3],   // 飞云石—翠微亭
-        [7,8,4],   // 九曲桥—翠微亭
-        [7,9,4],   // 九曲桥—白虎岩
-        // 右下区
-        [8,9,6],   // 翠微亭—白虎岩
-        [8,11,6],  // 翠微亭—望湖台
-        [9,10,5],  // 白虎岩—观月阁
-        [9,11,4]   // 白虎岩—望湖台
+        [0,1,2], [0,2,5], [0,3,6],
+        [1,2,3], [1,3,4],
+        [2,3,5], [2,5,3],
+        [3,4,4],
+        [4,5,4], [4,6,6], [4,7,7], [4,8,5],
+        [5,6,2], [5,7,5],
+        [6,7,7], [6,8,3],
+        [7,8,4], [7,9,4],
+        [8,9,6], [8,11,6],
+        [9,10,5], [9,11,4]
     ];
 
     presetSpots.forEach(function(s) {
@@ -695,7 +1042,13 @@ function loadPreset() {
     drawGraph();
 
     setStatus('✅ 已加载预设数据：' + spots.length + '个景点，' + presetEdges.length + '条边');
-    domOutputArea.innerHTML = '预设数据加载成功！<br><br>景点列表（点击分布图上的圆形图标可查看详情）：<br>' +
+
+    var adminMsg = '✅ 预设数据加载成功！<br>';
+    adminMsg += '景点数：<strong>' + spots.length + '</strong> &nbsp;|&nbsp; 边数：<strong>' + presetEdges.length + '</strong><br>';
+    adminMsg += '景点：' + spots.map(function(s, i) { return '[' + i + ']' + s; }).join('、');
+    domAdminOutput.innerHTML = adminMsg;
+
+    var visitorMsg = '预设数据加载成功！<br><br>景点列表（点击分布图上的圆形图标可查看详情）：<br>' +
         spots.map(function(s, i) { return '  [' + i + '] ' + s; }).join('<br>') +
         '<br><br>路径列表（' + presetEdges.length + '条）：<br>' +
         '  大门—游客中心(2) &nbsp; 大门—碧玉潭(5) &nbsp; 大门—竹林小径(6)<br>' +
@@ -708,11 +1061,14 @@ function loadPreset() {
         '  九曲桥—翠微亭(4) &nbsp; 九曲桥—白虎岩(4)<br>' +
         '  翠微亭—白虎岩(6) &nbsp; 翠微亭—望湖台(6)<br>' +
         '  白虎岩—观月阁(5) &nbsp; 白虎岩—望湖台(4)';
+    domOutputArea.innerHTML = visitorMsg;
+
+    showToast('已加载预设数据：' + spots.length + '个景点');
 }
 
 // ==================== 功能：展示邻接矩阵 ====================
 function displayMatrix() {
-    if (spots.length === 0) { alert('请先加载数据'); return; }
+    if (spots.length === 0) { showToast('请先加载数据', true); return; }
     rebuildMatrix();
     var n = spots.length;
     var html = '<table class="matrix-table"><thead><tr><th>景点</th>';
@@ -727,62 +1083,79 @@ function displayMatrix() {
         html += '</tr>';
     }
     html += '</tbody></table>';
-    domOutputArea.innerHTML = html;
+
+    if (currentMode === 'admin') {
+        domAdminOutput.innerHTML = html;
+    } else {
+        domOutputArea.innerHTML = html;
+    }
     setStatus('📊 已展示邻接矩阵（∞ = ' + INF + ' = 无连通路径）');
 }
 
-// ==================== 功能：DFS 导游线路 ====================
+// ==================== 功能：DFS 导游线路（修改后：无回溯） ====================
 function dfsTour() {
-    if (spots.length === 0) { alert('请先加载数据'); return; }
+    if (spots.length === 0) { showToast('请先加载数据', true); return; }
+
     var visited = {};
     tourPath = [];
+    var dfsTreeEdges = [];
 
-    function dfs(v) {
+    function dfs(v, parent) {
         visited[v] = true;
         tourPath.push(v);
+        if (parent !== undefined) {
+            dfsTreeEdges.push({ from: parent, to: v });
+        }
         var neighbors = adjList.get(v) || [];
-        neighbors.forEach(function(e) {
+        // 按边的权重排序，使遍历顺序稳定
+        var sortedNeighbors = neighbors.slice().sort(function(a, b) { return a.weight - b.weight; });
+        sortedNeighbors.forEach(function(e) {
             if (!visited[e.to]) {
-                dfs(e.to);
-                tourPath.push(v);
+                dfs(e.to, v);
+                // 不再记录回溯 —— 导游从大门出发，走到最后一个景点结束，不走回头路
             }
         });
     }
-    dfs(0);
 
-    highlightEdges = [];
-    for (var i = 0; i < tourPath.length - 1; i++) {
-        var from = tourPath[i], to = tourPath[i + 1];
-        if (from !== to) {
-            highlightEdges.push({ from: from, to: to, color: '#457b9d' });
-        }
-    }
+    dfs(0);  // 从大门（索引 0）出发
+
+    // 高亮 DFS 树的边（蓝色）
+    highlightEdges = dfsTreeEdges.map(function(e) {
+        return { from: e.from, to: e.to, color: '#457b9d' };
+    });
+
     drawGraph();
 
-    // count unique visited
     var uniqueVisited = {};
     tourPath.forEach(function(v) { uniqueVisited[v] = true; });
     var visitedCount = Object.keys(uniqueVisited).length;
 
-    var result = 'DFS 导游线路（从 ' + spots[0] + ' 出发）：<br><br>';
-    result += '遍历路径（含回溯）：<br>  ' + tourPath.map(function(i) { return spots[i]; }).join(' → ') + '<br><br>';
-    result += '覆盖景点数：' + visitedCount + ' / ' + spots.length + '<br>';
-    result += '线路步数：' + tourPath.length + ' 步<br>';
+    var result = '<strong>🗺 DFS 导游线路（从 ' + spots[0] + ' 出发）</strong><br><br>';
+    result += '游览顺序（每个景点仅访问一次，无需走回头路）：<br>  <span class="pat">';
+    result += tourPath.map(function(i) { return spots[i]; }).join(' → ');
+    result += '</span><br><br>';
+    result += '覆盖景点数：<strong>' + visitedCount + ' / ' + spots.length + '</strong><br>';
+    result += '线路步数：' + tourPath.length + ' 步（共访问 ' + tourPath.length + ' 个景点）<br>';
 
     if (visitedCount < spots.length) {
-        result += '<br>⚠️ 以下景点不可达：';
+        result += '<br><span class="hili">⚠️ 以下景点不可达：</span>';
         for (var i = 0; i < spots.length; i++) {
             if (!uniqueVisited[i]) result += spots[i] + '  ';
         }
+    } else {
+        result += '<br>✅ 所有景点均已覆盖。<br>';
+        result += '💡 导游线路从 <strong>' + spots[0] + '</strong> 开始，';
+        result += '到 <strong>' + spots[tourPath[tourPath.length - 1]] + '</strong> 结束，无需返回。';
     }
+
     domOutputArea.innerHTML = result;
-    setStatus('🗺️ DFS 导游线路已生成（蓝色高亮边），覆盖 ' + visitedCount + ' 个景点');
+    setStatus('🗺️ DFS 导游线路已生成（蓝色高亮边），从 ' + spots[0] + ' 到 ' + spots[tourPath[tourPath.length - 1]]);
 }
 
 // ==================== 功能：回路检测 ====================
 function detectCycle() {
-    if (spots.length === 0) { alert('请先加载数据'); return; }
-    if (tourPath.length === 0) { alert('请先生成导游线路（DFS）'); return; }
+    if (spots.length === 0) { showToast('请先加载数据', true); return; }
+    if (tourPath.length === 0) { showToast('请先生成导游线路（DFS）', true); return; }
 
     var visitCount = {};
     tourPath.forEach(function(v) { visitCount[v] = (visitCount[v] || 0) + 1; });
@@ -792,9 +1165,9 @@ function detectCycle() {
         if (visitCount[k] > 1) repeated.push([k, visitCount[k]]);
     });
 
-    var result = '回路检测结果：<br><br>';
+    var result = '<strong>🔁 回路检测结果</strong><br><br>';
     if (repeated.length > 0) {
-        result += '⚠️ 导游线路中存在回路！<br><br>';
+        result += '<span class="hili">⚠️ 导游线路中存在回路！</span><br><br>';
         highlightEdges = [];
         repeated.forEach(function(pair) {
             var idx = parseInt(pair[0]);
@@ -804,19 +1177,22 @@ function detectCycle() {
             for (var i = 0; i < positions.length - 1; i++) {
                 var cyclePath = tourPath.slice(positions[i], positions[i + 1] + 1);
                 var cycleStr = cyclePath.map(function(v) { return spots[v]; }).join(' → ');
-                result += '回路（经过 ' + spots[idx] + '）：<br>  ' + cycleStr + '<br>  回路长度：' + (cyclePath.length - 1) + ' 步<br><br>';
+                result += '回路（经过 <strong>' + spots[idx] + '</strong>）：<br>  ' + cycleStr + '<br>  回路长度：' + (cyclePath.length - 1) + ' 步<br><br>';
                 for (var j = 0; j < cyclePath.length - 1; j++) {
                     highlightEdges.push({ from: cyclePath[j], to: cyclePath[j + 1], color: '#e65100' });
                 }
             }
         });
+        setStatus('🔁 检测到回路（橙色高亮边）');
     } else {
-        result += '✅ 导游线路中未检测到回路。<br>所有景点在导游线路中均只被访问一次。<br>';
+        result += '✅ <strong>导游线路中未检测到回路。</strong><br><br>';
+        result += '当前线路采用"不走回头路"模式，<br>每个景点在导游线路中仅访问 <strong>1</strong> 次。<br>';
+        result += '导游从 ' + spots[0] + ' 出发，游览全部可达景点后结束。';
         highlightEdges = [];
+        setStatus('✅ 未检测到回路（线路无重复访问）');
     }
     drawGraph();
     domOutputArea.innerHTML = result;
-    setStatus(repeated.length > 0 ? '🔁 检测到回路（橙色高亮边）' : '✅ 未检测到回路');
 }
 
 // ==================== 功能：Dijkstra 最短路径 ====================
@@ -833,8 +1209,8 @@ function showDijkstraPanel() {
 function runDijkstra() {
     var start = parseInt(domDijkFrom.value);
     var end = parseInt(domDijkTo.value);
-    if (isNaN(start) || isNaN(end)) { alert('请选择起点和终点'); return; }
-    if (start === end) { alert('起点和终点不能相同'); return; }
+    if (isNaN(start) || isNaN(end)) { showToast('请选择起点和终点', true); return; }
+    if (start === end) { showToast('起点和终点不能相同', true); return; }
 
     var n = spots.length;
     var dist = [];
@@ -883,19 +1259,21 @@ function runDijkstra() {
         '<span class="dis">最短距离：' + dist[end] + '</span>';
     domDijkResult.style.display = 'block';
 
-    var detail = '最短路径（' + spots[start] + ' → ' + spots[end] + '）：<br>  路径：' + pathStr + '<br>  距离：' + dist[end] + '<br><br>途经分段：<br>';
+    var detail = '<strong>📏 最短路径（' + spots[start] + ' → ' + spots[end] + '）</strong><br>';
+    detail += '路径：<span class="pat">' + pathStr + '</span><br>';
+    detail += '距离：<span class="dis">' + dist[end] + '</span><br><br>途经分段：<br>';
     for (var i = 0; i < path.length - 1; i++) {
         var w = adjMatrix[path[i]][path[i + 1]];
         detail += '  ' + spots[path[i]] + ' — ' + spots[path[i + 1]] + ' ：' + w + '<br>';
     }
-    detail += '  ─────────<br>  总距离：' + dist[end];
+    detail += '  ─────────<br>  总距离：<strong>' + dist[end] + '</strong>';
     domOutputArea.innerHTML = detail;
     setStatus('📏 最短路径：' + spots[start] + ' → ' + spots[end] + '，距离 ' + dist[end] + '（红色高亮边）');
 }
 
 // ==================== 功能：Prim 最小生成树 ====================
 function primMST() {
-    if (spots.length === 0) { alert('请先加载数据'); return; }
+    if (spots.length === 0) { showToast('请先加载数据', true); return; }
     var n = spots.length;
     var visited = [];
     for (var i = 0; i < n; i++) visited[i] = false;
@@ -922,14 +1300,14 @@ function primMST() {
     }
 
     if (mstEdges.length < n - 1) {
-        domOutputArea.innerHTML = '⚠️ 图不连通，无法生成完整的最小生成树。<br>已生成 ' + mstEdges.length + ' 条边。';
+        domOutputArea.innerHTML = '<span class="hili">⚠️ 图不连通</span>，无法生成完整的最小生成树。<br>已生成 ' + mstEdges.length + ' 条边。';
         setStatus('⚠️ 图不连通');
     } else {
-        var result = '🌳 Prim 最小生成树（扩展功能）<br><br>MST 边列表：<br>';
+        var result = '<strong>🌳 Prim 最小生成树（扩展功能）</strong><br><br>MST 边列表：<br>';
         mstEdges.forEach(function(e) {
             result += '  ' + spots[e.from] + ' — ' + spots[e.to] + '  距离：' + e.weight + '<br>';
         });
-        result += '<br>最小生成树总权重：' + totalWeight + '<br>';
+        result += '<br>最小生成树总权重：<strong>' + totalWeight + '</strong><br>';
         result += '<br>💡 最小生成树可用于景区道路建设优化，以最少道路总长度连通所有景点。';
         domOutputArea.innerHTML = result;
         setStatus('🌳 最小生成树总权重：' + totalWeight + '（绿色高亮边）');
@@ -942,13 +1320,47 @@ function primMST() {
 // ==================== 辅助 ====================
 function setStatus(msg) { domStatusText.textContent = msg; }
 
+// ==================== 模式切换 ====================
+function switchMode(mode) {
+    if (currentMode === mode) return;
+    currentMode = mode;
+
+    var btnAdmin = document.getElementById('btnModeAdmin');
+    var btnVisitor = document.getElementById('btnModeVisitor');
+
+    if (mode === 'admin') {
+        btnAdmin.classList.add('admin-active');
+        btnVisitor.classList.remove('active');
+        domAdminPanel.style.display = 'block';
+        domVisitorPanel.style.display = 'none';
+        domModeLabel.innerHTML = '&#x1F3DB; 管理端';
+        domModeLabel.style.color = '#856404';
+        setStatus('🟡 管理端 — 可录入和维护景点与路径信息');
+        highlightEdges = [];
+        drawGraph();
+    } else {
+        btnVisitor.classList.add('active');
+        btnAdmin.classList.remove('admin-active');
+        domAdminPanel.style.display = 'none';
+        domVisitorPanel.style.display = 'block';
+        domModeLabel.innerHTML = '&#x1F3D4; 游客端';
+        domModeLabel.style.color = '#2d6a4f';
+        setStatus('🟢 游客端 — 可使用导游线路、最短路径等游览功能');
+        highlightEdges = [];
+        drawGraph();
+    }
+    updateSelects();
+}
+
 // ==================== 初始化 ====================
 function init() {
     // 缓存 DOM 引用
     domOutputArea = document.getElementById('outputArea');
+    domAdminOutput = document.getElementById('adminOutput');
     domStatusText = document.getElementById('statusText');
     domSpotCount = document.getElementById('spotCount');
     domEdgeCount = document.getElementById('edgeCount');
+    domModeLabel = document.getElementById('modeLabel');
     domSpotSelect = document.getElementById('spotSelect');
     domDijkFrom = document.getElementById('dijkFrom');
     domDijkTo = document.getElementById('dijkTo');
@@ -961,10 +1373,24 @@ function init() {
     domModalNeighbors = document.getElementById('modalNeighbors');
     domModalDesc = document.getElementById('modalDesc');
     domModalNearby = document.getElementById('modalNearby');
+    domAdminPanel = document.getElementById('adminPanel');
+    domVisitorPanel = document.getElementById('visitorPanel');
+    domToast = document.getElementById('toast');
 
-    // 绑定按钮事件
+    // 模式切换按钮
+    document.getElementById('btnModeAdmin').addEventListener('click', function() { switchMode('admin'); });
+    document.getElementById('btnModeVisitor').addEventListener('click', function() { switchMode('visitor'); });
+
+    // 管理端按钮
     document.getElementById('btnLoad').addEventListener('click', loadPreset);
+    document.getElementById('btnAddSpot').addEventListener('click', adminAddSpot);
+    document.getElementById('btnDelSpot').addEventListener('click', adminDeleteSpot);
+    document.getElementById('btnAddEdge').addEventListener('click', adminAddEdge);
+    document.getElementById('btnDelEdge').addEventListener('click', adminDeleteEdge);
     document.getElementById('btnMatrix').addEventListener('click', displayMatrix);
+    document.getElementById('btnListData').addEventListener('click', adminListData);
+
+    // 游客端按钮
     document.getElementById('btnDfs').addEventListener('click', dfsTour);
     document.getElementById('btnCycle').addEventListener('click', detectCycle);
     document.getElementById('btnDijkstra').addEventListener('click', showDijkstraPanel);
@@ -974,6 +1400,14 @@ function init() {
     document.getElementById('modalClose').addEventListener('click', closeModal);
     domModalOverlay.addEventListener('click', function(e) {
         if (e.target === domModalOverlay) closeModal();
+    });
+
+    // 管理端输入框回车键触发
+    document.getElementById('inputSpotName').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') adminAddSpot();
+    });
+    document.getElementById('inputEdgeWeight').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') adminAddEdge();
     });
 
     // Canvas
@@ -1003,7 +1437,9 @@ function init() {
     // 初始绘制
     resizeCanvas();
     updateSelects();
-    setStatus('🟢 就绪 — 点击"加载预设数据"开始使用');
+
+    // 默认显示管理端
+    switchMode('admin');
 
     // 窗口大小改变时重绘
     window.addEventListener('resize', function() {
